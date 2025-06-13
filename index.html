@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+      html, body {
+        margin: 0;
+      }
+      canvas {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/js/three.js"></script>
+    <script src="/js/GLTFLoader.js"></script>
+    <script src="/js/PointerLockControls.js"></script>
+    <script src="/js/Tween.js"></script>
+    <script src="/js/physics.js"></script>
+    <div style="position: absolute; left: 20px; bottom: 20px; color: #fff; font-size: 30px; z-index: 999" class="speed">0</div>
+  <script>
+    let car = null;
+    let perspective = 0;
+    let steeringLeft = false;
+    let steeringRight = false;
+    let throttle = false;
+    let braking = false;
+    options = {
+      carHeadingMaxIncrement: 0.5,
+      carHeadingIncrement: 0
+    };
+
+    physics.env.dragCoefficient = 0.3;
+    physics.env.rollingResistanceCoefficient = 0.01;
+    physics.env.frontalArea = 2.2;
+    physics.env.vehicleMass = 1400;
+    physics.env.maxEnginePower = 228000;
+    physics.env.maxBrakePower = 13500;
+
+    physics.env.engine.finalDrive = 4.111;
+    physics.env.engine.wheelRadius = 0.327;
+    physics.env.engine.maxRPM = 7000;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, { format: THREE.RGBAFormat });
+    const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
+    scene.add(cubeCamera);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x2b2c2d, 0.5);
+    const interiorLight = new THREE.PointLight(0xffffff, 0.5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.left = -5;
+    directionalLight.shadow.camera.right = 5;
+    directionalLight.shadow.camera.top = 5;
+    directionalLight.shadow.camera.bottom = -5;
+    directionalLight.shadow.camera.near = 1;
+    directionalLight.shadow.camera.far = 100;
+    directionalLight.shadow.bias = -0.001;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
+    directionalLight.shadow.camera.updateProjectionMatrix();
+    directionalLight.target.position.set(0, 0, 0);
+    scene.add(directionalLight);
+    scene.add(directionalLight.target);
+    scene.add(ambientLight);
+    scene.add(hemisphereLight);
+    scene.add(interiorLight);
+
+    scene.background = new THREE.Color(0xaaaaaa);
+    scene.fog = new THREE.Fog(0xaaaaaa, 0,  200);
+
+    const PointerControls = new PointerLockControls(camera, renderer.domElement);
+    PointerControls.isLocked = true;
+    PointerControls.pointerSpeed = 2;
+
+    document.body.appendChild(renderer.domElement);
+
+    function animate() {
+      physics.update();
+
+      if (car) {
+        directionalLight.position.set(car.position.x + 10, 10, car.position.z + 5);
+        directionalLight.target.position.set(car.position.x, 0, car.position.z);
+        directionalLight.target.updateMatrixWorld();
+
+        car.visible = false;
+        cubeCamera.position.copy(car.position);
+        cubeCamera.translateY(1);
+        cubeCamera.update(renderer, scene);
+        car.visible = true;
+
+        interiorLight.position.copy(car.position);
+        interiorLight.rotation.copy(car.rotation);
+        interiorLight.translateY(1);
+        interiorLight.translateX(0.5);
+
+        if (throttle) {
+          physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePower);
+        } else {
+          physics.env.enginePower = 0;
+        }
+
+        if (braking) {
+          physics.env.braking = true;
+          physics.env.brakePower = Math.min(physics.env.brakePower + 500, physics.env.maxBrakePower);
+        } else {
+          physics.env.braking = false;
+          physics.env.brakePower = 0;
+        }
+      }
+      physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    function onWindowResize() {
+      renderer.setPixelRatio(1);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.5, false);
+    }
+    window.addEventListener("resize", onWindowResize);
+    onWindowResize();
+
+    let ground = new THREE.Mesh(new THREE.BoxGeometry(1000, 1, 1000), new THREE.MeshStandardMaterial({ color: 0xcccccc, map: new THREE.TextureLoader().load("/grass.jpg") }));
+    ground.position.set(0, -0.5, 0);
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    physics.onUpdate = function(delta) {
+      if (car) {
+        car.translateZ(physics.env.speedMS * delta);
+        car.rotateY(physics.env.currentHeading * delta);
+
+        car.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
+        car.getObjectByName("Wheel_FR").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
+        car.getObjectByName("Steering_Wheel").rotation.z = -THREE.MathUtils.degToRad(physics.env.heading) * 12;
+
+        car.getObjectByName("Wheel_FL").rotation.x += physics.env.wheelAngularVelocity * delta;
+        car.getObjectByName("Wheel_FR").rotation.x += physics.env.wheelAngularVelocity * delta;
+        car.getObjectByName("Wheel_RL").rotation.x += physics.env.wheelAngularVelocity * delta;
+        car.getObjectByName("Wheel_RR").rotation.x += physics.env.wheelAngularVelocity * delta;
+        document.querySelector(".speed").textContent = physics.env.speedMPH.toFixed(1);
+      }
+    };
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key === "ArrowUp" && !event.repeat) {
+        throttle = true;
+      }
+      if (event.key === "ArrowLeft") {
+        new Tween(options.carHeadingIncrement, options.carHeadingMaxIncrement, 250, "in", (x) => { options.carHeadingIncrement = x }).start();
+      }
+      if (event.key === "ArrowRight") {
+        new Tween(options.carHeadingIncrement, -options.carHeadingMaxIncrement, 250, "in", (x) => { options.carHeadingIncrement = x }).start();
+      }
+      if (event.key === "Tab" && !event.repeat) {
+        event.preventDefault();
+        if (perspective === 0) {
+          perspective = 1;
+          car.getObjectByName("CameraHolder_TP").add(camera);
+          camera.rotation.set(0, 0, 0);
+          PointerControls.isLocked = false;
+        } else if (perspective === 1) {
+          perspective = 2;
+          car.getObjectByName("CameraHolder_TP1").add(camera);
+          camera.rotation.set(0, 0, 0);
+          PointerControls.isLocked = false;
+        } else if (perspective === 2) {
+          perspective = 0;
+          car.getObjectByName("CameraHolder_FP").add(camera);
+          PointerControls.isLocked = true;
+        }
+      }
+      if (event.key === "b" && !event.repeat) {
+        braking = true;
+      }
+    });
+
+    document.addEventListener("keyup", function(event) {
+      if (event.key === "ArrowUp") {
+        throttle = false;
+      }
+      if (event.key === "ArrowLeft") {
+        new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
+      }
+      if (event.key === "ArrowRight") {
+        new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
+      }
+      if (event.key === "b") {
+        braking = false;
+      }
+    });
+
+    function loadVehicle() {
+      new THREE.GLTFLoader().load("/Honda_Civic_Sport_Touring.glb", function(gltf) {
+        car = gltf.scene;
+        car.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) child.material.vertexColors = false;
+          }
+        });
+
+        car.getObjectByName("CameraHolder_FP").add(camera);
+        car.getObjectByName("Wheel_FL").rotation.order = "YXZ";
+        car.getObjectByName("Wheel_FR").rotation.order = "YXZ";
+        car.getObjectByName("Wheel_RL").rotation.order = "YXZ";
+        car.getObjectByName("Wheel_RR").rotation.order = "YXZ";
+
+        new THREE.TextureLoader().load("/sky.png", function(texture) {
+          let pmremGenerator = new THREE.PMREMGenerator(renderer);
+          let envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          car.getObjectByName("Exterior_Shell").material.envMap = envMap;
+        });
+
+        car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
+        scene.add(car);
+      });
+    }
+
+    loadVehicle();
+  </script>
+  </body>
+</html>
