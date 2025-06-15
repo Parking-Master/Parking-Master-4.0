@@ -7,6 +7,7 @@
     <style>
       html, body {
         margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
       }
       canvas {
         position: relative;
@@ -25,6 +26,44 @@
         background: #fff;
         z-index: 9999;
       }
+      .ui .pointer.active {
+        background: transparent;
+        width: 10px;
+        height: 10px;
+        margin-left: -5px;
+        margin-top: -5px;
+        border: 1px solid #fff;
+      }
+      .ui .pointer-text {
+        width: 200px;
+        border-radius: 0;
+        position: absolute;
+        left: 51%;
+        top: 50%;
+        margin-top: -18px;
+        background: transparent;
+        backdrop-filter: blur(5px);
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+        text-align: center;
+        color: #fff;
+        padding: 5px;
+        z-index: 9999;
+        display: none;
+        font-size: 14px;
+      }
+      #NotiflixNotifyWrap {
+        backdrop-filter: blur(5px);
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+      }
+      .key {
+        border: 1px solid currentColor;
+        border-radius: 3px;
+        font-size: 12px;
+        padding: 1px 3px;
+        font-family: monospace;
+      }
     </style>
   </head>
   <body>
@@ -34,11 +73,38 @@
     <script src="/js/Tween.js"></script>
     <script src="/js/physics.js"></script>
     <script src="/js/text.js"></script>
+    <script src="/js/notiflix.js"></script>
     <div class="ui">
       <div class="pointer"></div>
+      <div class="pointer-text">Pointer text.</div>
     </div>
     <div style="position: absolute; left: 20px; bottom: 20px; color: #fff; font-size: 30px; z-index: 999" class="speed">0</div>
   <script>
+    Notiflix.Notify.init({
+      clickToClose: false,
+      showOnlyTheLastOne: true,
+      timeout: 2000,
+      info: {
+        background: "transparent",
+        textColor: "#fff",
+        notiflixIconColor: "#fff"
+      },
+      warning: {
+        background: "transparent",
+        textColor: "#fff",
+        notiflixIconColor: "gold"
+      }
+    });
+
+    function pointerText(text) {
+      document.querySelector(".pointer-text").innerHTML = text;
+      document.querySelector(".pointer-text").style.display = "block";
+    }
+
+    function hidePointerText() {
+      document.querySelector(".pointer-text").style.display = "";
+    }
+
     let car = null;
     let perspective = 0;
     let steeringLeft = false;
@@ -53,6 +119,14 @@
       carHeadingMaxIncrement: 0.5,
       carHeadingIncrement: 0
     };
+    controls = {
+      "Control_Screen": true,
+      "Horn": true,
+      "Ignition": true,
+      "Lever": true,
+      "Lever_Alt": false,
+      "Shifter": true
+    };
 
     physics.env.dragCoefficient = 0.3;
     physics.env.rollingResistanceCoefficient = 0.01;
@@ -66,6 +140,7 @@
     physics.env.engine.finalDrive = 4.111;
     physics.env.engine.wheelRadius = 0.327;
     physics.env.engine.maxRPM = 7000;
+    physics.env.engine.maxRPMReverse = 3500;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -156,7 +231,7 @@
           physics.env.brakePower = 0;
         }
 
-        if (frame % 20 === 0) {
+        if (frame % 15 === 0) {
           raycaster.setFromCamera(centerVector, camera);
           intersections = raycaster.intersectObjects(raycastTargets);
           for (let i = 0; i < raycastTargets.length; i++) {
@@ -165,8 +240,10 @@
 
           if (intersections[0]) {
             PointerControls.pointerSpeed = pointerSpeed / 3;
-            if (typeof intersections[0].object.getObjectByName("PointerText") !== "undefined") intersections[0].object.getObjectByName("PointerText").visible = true;
+            document.querySelector(".pointer").classList.add("active");
+            if (typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) intersections[0].object.getObjectByName("PointerText").visible = true;
           } else {
+            document.querySelector(".pointer").classList.remove("active");
             PointerControls.pointerSpeed = pointerSpeed;
           }
         }
@@ -205,17 +282,18 @@
 
     physics.onUpdate = function(delta) {
       if (car) {
-        car.translateZ(physics.env.speedMS * delta);
-        car.rotateY(physics.env.currentHeading * delta);
+        const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
+        car.translateZ(physics.env.speedMS * delta * shiftFactor);
+        car.rotateY(physics.env.currentHeading * delta * shiftFactor);
 
         car.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
         car.getObjectByName("Wheel_FR").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
         car.getObjectByName("Steering_Wheel").rotation.z = -THREE.MathUtils.degToRad(physics.env.heading) * 12;
 
-        car.getObjectByName("Wheel_FL").rotation.x += physics.env.wheelAngularVelocity * delta;
-        car.getObjectByName("Wheel_FR").rotation.x += physics.env.wheelAngularVelocity * delta;
-        car.getObjectByName("Wheel_RL").rotation.x += physics.env.wheelAngularVelocity * delta;
-        car.getObjectByName("Wheel_RR").rotation.x += physics.env.wheelAngularVelocity * delta;
+        car.getObjectByName("Wheel_FL").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
+        car.getObjectByName("Wheel_FR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
+        car.getObjectByName("Wheel_RL").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
+        car.getObjectByName("Wheel_RR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
         document.querySelector(".speed").textContent = physics.env.speedMPH.toFixed(1);
       }
     };
@@ -225,11 +303,19 @@
         if (controlLock === "Shifter") {
           if (currentGear === "drive") {
             currentGear = "neutral";
+            Notiflix.Notify.info("Car is now in neutral.");
           } else if (currentGear === "neutral") {
             currentGear = "reverse";
             physics.env.currentGear = "reverse";
+            Notiflix.Notify.info("Car is now in reverse.");
           } else if (currentGear === "reverse") {
             currentGear = "park";
+          }
+          if (currentGear === "reverse") {
+            car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
+            car.getObjectByName("Reverse_Lights").material.opacity = 1;
+          } else {
+            car.getObjectByName("Reverse_Lights").material.opacity = 0;
           }
         } else {
           throttle = true;
@@ -240,11 +326,20 @@
           if (currentGear === "park") {
             currentGear = "reverse";
             physics.env.currentGear = "reverse";
+            Notiflix.Notify.info("Car is now in reverse.");
           } else if (currentGear === "reverse") {
             currentGear = "neutral";
+            Notiflix.Notify.info("Car is now in neutral.");
           } else if (currentGear === "neutral") {
             currentGear = "drive";
             physics.env.currentGear = "drive";
+            Notiflix.Notify.info("Car is now in drive.");
+          }
+          if (currentGear === "reverse") {
+            car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
+            car.getObjectByName("Reverse_Lights").material.opacity = 1;
+          } else {
+            car.getObjectByName("Reverse_Lights").material.opacity = 0;
           }
         }
       }
@@ -261,23 +356,28 @@
           car.getObjectByName("CameraHolder_TP").add(camera);
           camera.rotation.set(0, 0, 0);
           PointerControls.isLocked = false;
+          document.querySelector(".pointer").style.display = "none";
         } else if (perspective === 1) {
           perspective = 2;
           car.getObjectByName("CameraHolder_TP1").add(camera);
           camera.rotation.set(0, 0, 0);
           PointerControls.isLocked = false;
+          document.querySelector(".pointer").style.display = "none";
         } else if (perspective === 2) {
           perspective = 0;
           car.getObjectByName("CameraHolder_FP").add(camera);
           PointerControls.isLocked = true;
+          document.querySelector(".pointer").style.display = "";
         }
       }
       if (event.key === "b" && !event.repeat) {
         braking = true;
+        car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
       }
       if (event.key === "Escape" && controlLock && !event.repeat) {
         controlLock = null;
         PointerControls.isLocked = true;
+        hidePointerText();
       }
     });
 
@@ -293,15 +393,20 @@
       }
       if (event.key === "b") {
         braking = false;
+        car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
       }
     });
 
     document.addEventListener("mousedown", function(event) {
       if (intersections[0]) {
         const control = intersections[0].object.name;
-        if (control === "Shifter") {
-          controlLock = "Shifter";
-          PointerControls.isLocked = false;
+        if (!controlLock) {
+          if (control === "Shifter") {
+            if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
+            pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Esc</span> to exit)");
+            controlLock = "Shifter";
+            PointerControls.isLocked = false;
+          }
         }
       }
     });
@@ -332,7 +437,8 @@
         car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
 
         raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Lever"), car.getObjectByName("Lever_Alt"), car.getObjectByName("Shifter"), car.getObjectByName("Control_Screen")];
-        raycastTargets.forEach(control => {
+        raycastTargets.forEach((control, index) => {
+          if (!controls[control.name]) return raycastTargets.splice(index, 1);
           if (control.name === "Control_Screen") {
             return;
           }
@@ -342,7 +448,7 @@
             "Lever": "Control stick",
             "Lever_Alt": "Control stick",
             "Shifter": "Shifter"
-          }
+          };
           const pointer = THREE.Text.createPointerText(nameMap[control.name], 30, "Arial");
           control.add(pointer);
         })

@@ -5,6 +5,7 @@ physics = {
     tireFrictionCoefficient: 0.9,
     rollingResistanceCoefficient: 0.01,
     frontalArea: 2.84,
+    rearArea: 2.84,
     vehicleMass: 2000,
     speedMS: 0,
     speedMPH: 0,
@@ -12,6 +13,7 @@ physics = {
     wheelAngularVelocity: 0,
     enginePower: 0,
     maxEnginePower: 220000,
+    maxEnginePowerReverse: 40000,
     brakePower: 0,
     maxBrakePower: 18000,
     braking: false,
@@ -20,31 +22,34 @@ physics = {
       finalDrive: 3,
       wheelRadius: 0.254,
       maxRPM: 6000,
+      maxRPMReverse: 3000,
       gear: 0
     },
     heading: 0,
     currentHeading: 0,
-    axleDistance: 2.701
+    axleDistance: 2.701,
+    currentGear: "drive"
   },
   timestamp: performance.now(),
   calculateDrag: function(v) {
-    return 0.5 * physics.env.airDensity * physics.env.dragCoefficient * physics.env.frontalArea * v * v;
+    return 0.5 * physics.env.airDensity * physics.env.dragCoefficient * (physics.env.currentGear === "drive" ? physics.env.frontalArea : physics.env.rearArea) * v * v;
   },
   calculateRollingResistance: function() {
     return physics.env.rollingResistanceCoefficient * (physics.env.vehicleMass * 9.81);
   },
   calculateTurningResistance: function(v, k, a) {
-    return (0.5 * physics.env.airDensity * physics.env.dragCoefficient * physics.env.frontalArea * v * v) * (1 + k * Math.abs(Math.sin(a)));
+    return (0.5 * physics.env.airDensity * physics.env.dragCoefficient * (physics.env.currentGear === "drive" ? physics.env.frontalArea : physics.env.rearArea) * v * v) * (1 + k * Math.abs(Math.sin(a)));
   },
   calculateEngineForce: function(speed) {
+    const maxRPM = physics.env.currentGear === "drive" ? physics.env.engine.maxRPM : physics.env.engine.maxRPMReverse;
     function getEngineRPM(speed, gear) {
       return (speed * physics.env.engine.gearRatios[gear] * physics.env.engine.finalDrive * 60) / (2 * Math.PI * physics.env.engine.wheelRadius);
     }
-    if (getEngineRPM(speed, physics.env.engine.gear) > physics.env.engine.maxRPM && physics.env.engine.gear < physics.env.engine.gearRatios.length - 1) physics.env.engine.gear++;
+    if (getEngineRPM(speed, physics.env.engine.gear) > maxRPM && physics.env.engine.gear < physics.env.engine.gearRatios.length - 1) physics.env.engine.gear++;
     if (getEngineRPM(speed, physics.env.engine.gear) < 1500 && physics.env.engine.gear > 0) physics.env.engine.gear--;
     let rpm = getEngineRPM(speed, physics.env.engine.gear);
     let availablePower = physics.env.enginePower;
-    if (rpm > physics.env.engine.maxRPM) availablePower = 0;
+    if (rpm > maxRPM) availablePower = 0;
     return availablePower / Math.max(speed, 1);
   },
   calculateTurningAngle: function(v, d, a) {
