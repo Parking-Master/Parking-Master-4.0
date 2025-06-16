@@ -105,6 +105,12 @@
       document.querySelector(".pointer-text").style.display = "";
     }
 
+    function exitControlLock() {
+      controlLock = null;
+      PointerControls.isLocked = true;
+      hidePointerText();
+    }
+
     let car = null;
     let perspective = 0;
     let steeringLeft = false;
@@ -337,6 +343,7 @@
       }
       if (event.key === "Tab" && !event.repeat) {
         event.preventDefault();
+        exitControlLock();
         if (perspective === 0) {
           perspective = 1;
           car.getObjectByName("CameraHolder_TP").add(camera);
@@ -361,9 +368,7 @@
         car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
       }
       if (event.key === "Escape" && controlLock && !event.repeat) {
-        controlLock = null;
-        PointerControls.isLocked = true;
-        hidePointerText();
+        exitControlLock();
       }
     });
 
