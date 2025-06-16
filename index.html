@@ -128,20 +128,6 @@
       "Shifter": true
     };
 
-    physics.env.dragCoefficient = 0.3;
-    physics.env.rollingResistanceCoefficient = 0.01;
-    physics.env.frontalArea = 2.2;
-    physics.env.rearArea = 2.7;
-    physics.env.vehicleMass = 1400;
-    physics.env.maxEnginePower = 228000;
-    physics.env.maxEnginePowerReverse = 40000;
-    physics.env.maxBrakePower = 13500;
-
-    physics.env.engine.finalDrive = 4.111;
-    physics.env.engine.wheelRadius = 0.327;
-    physics.env.engine.maxRPM = 7000;
-    physics.env.engine.maxRPMReverse = 3500;
-
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
@@ -288,7 +274,7 @@
 
         car.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
         car.getObjectByName("Wheel_FR").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
-        car.getObjectByName("Steering_Wheel").rotation.z = -THREE.MathUtils.degToRad(physics.env.heading) * 12;
+        car.getObjectByName("Steering_Wheel").rotation.z = -THREE.MathUtils.degToRad(physics.env.heading) * physics.env.wheelTurnRatio;
 
         car.getObjectByName("Wheel_FL").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
         car.getObjectByName("Wheel_FR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
@@ -412,8 +398,18 @@
     });
 
     function loadVehicle() {
-      new THREE.GLTFLoader().load("/Honda_Civic_Sport_Touring.glb", function(gltf) {
+      new THREE.GLTFLoader().load("/Ram_1500_RTX.glb", function(gltf) {
         car = gltf.scene;
+
+        const enginePhysicsKeys = ["finalDrive", "wheelRadius", "maxRPM", "maxRPMReverse"];
+        Object.keys(car.children[0].userData).forEach((key, index) => {
+          if (enginePhysicsKeys.includes(key)) {
+            physics.env.engine[key] = Object.values(car.children[0].userData)[index];
+          } else {
+            physics.env[key] = Object.values(car.children[0].userData)[index];
+          }
+        });
+
         car.traverse(child => {
           if (child.isMesh) {
             child.castShadow = true;
@@ -439,9 +435,12 @@
         raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Lever"), car.getObjectByName("Lever_Alt"), car.getObjectByName("Shifter"), car.getObjectByName("Control_Screen")];
         raycastTargets.forEach((control, index) => {
           if (!controls[control.name]) return raycastTargets.splice(index, 1);
+        });
+        raycastTargets.forEach((control, index) => {
           if (control.name === "Control_Screen") {
             return;
           }
+
           let nameMap = {
             "Horn": "Car horn",
             "Ignition": "Car ignition",

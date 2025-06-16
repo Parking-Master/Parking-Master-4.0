@@ -16,6 +16,7 @@ physics = {
     maxEnginePowerReverse: 40000,
     brakePower: 0,
     maxBrakePower: 18000,
+    wheelTurnRatio: 12,
     braking: false,
     engine: {
       gearRatios: [3.5, 2.1, 1.4, 1.0, 0.8],
