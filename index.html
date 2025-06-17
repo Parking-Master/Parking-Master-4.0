@@ -112,6 +112,8 @@
     }
 
     let car = null;
+    let ground = null;
+    let carColliders = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -249,6 +251,20 @@
         } else if (currentGear === "park") {
           car.getObjectByName("Shifter").rotation.x = 0.3;
         }
+
+        if (ground && carColliders.length > 0) {
+          ground.traverse(wallPoint => {
+            for (let i = 0; i < carColliders.length; i++) {
+            let collider = carColliders[i];
+          
+            if (wallPoint.name.startsWith("WallPoint")){
+              if (collider.name.startsWith("Collider")){
+                  if (collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPoint.getWorldPosition(new THREE.Vector3())) < 0.4) document.querySelector(".speed").style.color = "red";
+                }
+              }
+            }
+          });
+        }
       }
       physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
 
@@ -266,11 +282,6 @@
     }
     window.addEventListener("resize", onWindowResize);
     onWindowResize();
-
-    let ground = new THREE.Mesh(new THREE.BoxGeometry(1000, 1, 1000), new THREE.MeshStandardMaterial({ color: 0xcccccc, map: new THREE.TextureLoader().load("/grass.jpg") }));
-    ground.position.set(0, -0.5, 0);
-    ground.receiveShadow = true;
-    scene.add(ground);
 
     physics.onUpdate = function(delta) {
       if (car) {
@@ -403,7 +414,7 @@
     });
 
     function loadVehicle() {
-      new THREE.GLTFLoader().load("/Ram_1500_RTX.glb", function(gltf) {
+      new THREE.GLTFLoader().load("/models/cars/Honda_Civic_Sport_Touring.glb", function(gltf) {
         car = gltf.scene;
 
         const enginePhysicsKeys = ["finalDrive", "wheelRadius", "maxRPM", "maxRPMReverse"];
@@ -435,6 +446,23 @@
           car.getObjectByName("Exterior_Shell").material.envMap = envMap;
         });
 
+        new THREE.GLTFLoader().load("/models/parking_lots/lvl1.glb", function(gltf) {
+          ground = gltf.scene;
+
+          let scale = 0.33;
+          let spawner = ground.getObjectByName("Spawner");
+          ground.scale.set(scale, scale, scale);
+          car.position.set(spawner.position.x * scale, spawner.position.y * scale, spawner.position.z * scale);
+          car.rotation.copy(ground.getObjectByName("Spawner").rotation);
+
+          ground.getObjectByName("Ground").receiveShadow = true;
+          ground.getObjectByName("Ground").material.map.encoding = THREE.sRGBEncoding;
+          ground.getObjectByName("Ground").material.map.minFilter = THREE.NearestFilter;
+          ground.getObjectByName("Ground").material.map.magFilter = THREE.NearestFilter;
+          ground.getObjectByName("Ground").material.map.needsUpdate = true;
+          scene.add(ground);
+        });
+
         car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
 
         raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Lever"), car.getObjectByName("Lever_Alt"), car.getObjectByName("Shifter"), car.getObjectByName("Control_Screen")];
@@ -455,7 +483,10 @@
           };
           const pointer = THREE.Text.createPointerText(nameMap[control.name], 30, "Arial");
           control.add(pointer);
-        })
+        });
+
+        carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
+
         scene.add(car);
       });
     }
