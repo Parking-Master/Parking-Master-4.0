@@ -76,12 +76,13 @@ physics = {
     const dragF = physics.calculateDrag(v);
     const turningF = physics.calculateTurningResistance(v, 1.0, physics.env.currentHeading);
     const rollingF = physics.calculateRollingResistance(v);
-    let netF = engineF - dragF - turningF;
+    const engineBrakeF = physics.env.enginePower > 0 ? 0 : 400;
+    let netF = engineF - dragF - turningF - engineBrakeF;
   
     if (physics.env.speedMS > 0) {
       if (physics.env.braking) {
         const maxFrictionForce = physics.env.tireFrictionCoefficient * physics.env.vehicleMass * 9.81;
-        const speedFactor = Math.min(1, physics.env.speedMS / 3); // Taper below 5 m/s
+        const speedFactor = Math.min(1, physics.env.speedMS / 3);
         const effectiveBrake = Math.min(physics.env.brakePower, maxFrictionForce) * speedFactor;
         netF -= effectiveBrake;
       }
