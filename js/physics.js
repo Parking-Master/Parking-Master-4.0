@@ -7,6 +7,7 @@ physics = {
     frontalArea: 2.84,
     rearArea: 2.84,
     vehicleMass: 2000,
+    acceleration: 0,
     speedMS: 0,
     speedMPH: 0,
     wheelRPM: 0,
@@ -91,6 +92,7 @@ physics = {
 
     const trueAcceleration = netF / physics.env.vehicleMass;
 
+    physics.env.acceleration = trueAcceleration;
     physics.env.speedMS += trueAcceleration * dt;
     if (physics.env.speedMS < 0) physics.env.speedMS = 0;
     physics.env.speedMPH = physics.env.speedMS * 2.237;

@@ -162,6 +162,7 @@
     <script src="/js/PointerLockControls.js"></script>
     <script src="/js/Tween.js"></script>
     <script src="/js/physics.js"></script>
+    <script src="/js/audio.js"></script>
     <script src="/js/text.js"></script>
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
@@ -212,9 +213,11 @@
     let car = null;
     let ground = null;
     let carColliders = [];
+    let spotDistances = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
+    let engine = true;
     let throttle = false;
     let braking = false;
     let intersections = null;
@@ -223,6 +226,10 @@
     let manualSteering = false;
     let stopAnimate = false;
     let resetCarPosition = null;
+    let lockPointer = true;
+    let controlScreenMap = null;
+    let collisionWarning = false;
+    let gaveCollisionWarning = false;
     let currentGear = "drive";
     options = {
       carHeadingMaxIncrement: 0.5,
@@ -245,6 +252,9 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    const reverseRenderTarget = new THREE.WebGLRenderTarget(300, 200);
+    const reverseCamera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
 
     const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, { format: THREE.RGBAFormat });
     const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
@@ -287,6 +297,11 @@
     document.body.appendChild(renderer.domElement);
 
     function gameOver(reason) {
+      lockPointer = false;
+      exitControlLock();
+      document.exitPointerLock();
+      audio.end();
+
       stopAnimate = true;
       swal({
         title: "Game over",
@@ -304,11 +319,16 @@
           togglePerspective(0);
           perspective = 0;
           camera.rotation.set(0, 0, 0);
+          lockPointer = true;
+          shift("drive");
+          audio.sounds.idle.play();
 
           stopAnimate = false;
           animate();
 
           swal.close();
+        } else {
+          location.replace("/");
         }
       });
       document.querySelector(".swal-button").style.border = "2px solid gold";
@@ -334,17 +354,71 @@
         camera.rotation.set(0, 0, 0);
         PointerControls.isLocked = false;
         document.querySelector(".pointer").style.display = "none";
+        car.getObjectByName("Control_Screen").visible = false;
       } else if (newPerspective === 2) {
         perspective = 2;
         car.getObjectByName("CameraHolder_TP1").add(camera);
         camera.rotation.set(0, 0, 0);
         PointerControls.isLocked = false;
         document.querySelector(".pointer").style.display = "none";
+        car.getObjectByName("Control_Screen").visible = false;
       } else if (newPerspective === 0) {
         perspective = 0;
         car.getObjectByName("CameraHolder_FP").add(camera);
         PointerControls.isLocked = true;
         document.querySelector(".pointer").style.display = "";
+        car.getObjectByName("Control_Screen").visible = true;
+      }
+    }
+
+    function shift(direction) {
+      if (direction === "up") {
+        if (currentGear === "drive") {
+          currentGear = "neutral";
+          Notiflix.Notify.info("Car is now in neutral.");
+        } else if (currentGear === "neutral") {
+          currentGear = "reverse";
+          physics.env.currentGear = "reverse";
+          Notiflix.Notify.info("Car is now in reverse.");
+        } else if (currentGear === "reverse") {
+          currentGear = "park";
+        }
+      } else if (direction === "down") {
+        if (currentGear === "park") {
+          currentGear = "reverse";
+          physics.env.currentGear = "reverse";
+          Notiflix.Notify.info("Car is now in reverse.");
+        } else if (currentGear === "reverse") {
+          currentGear = "neutral";
+          Notiflix.Notify.info("Car is now in neutral.");
+        } else if (currentGear === "neutral") {
+          currentGear = "drive";
+          physics.env.currentGear = "drive";
+          Notiflix.Notify.info("Car is now in drive.");
+        }
+      } else {
+        currentGear = direction;
+        if (currentGear === "reverse") physics.env.currentGear = "reverse";
+        if (currentGear === "drive") physics.env.currentGear = "drive";
+      }
+
+      if (currentGear === "reverse") {
+        car.getObjectByName("Control_Screen").material.map = reverseRenderTarget.texture;
+        car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
+        car.getObjectByName("Reverse_Lights").material.opacity = 1;
+      } else {
+        car.getObjectByName("Control_Screen").material.map = controlScreenMap;
+        car.getObjectByName("Reverse_Lights").material.opacity = 0;
+      }
+    }
+
+    function toggleEngine() {
+      if (engine) {
+        engine = false;
+        Notiflix.Notify.info("Engine has been shut off.");
+      } else {
+        Notiflix.Notify.info("Engine has been activated.");
+        engine = true;
       }
     }
 
@@ -372,7 +446,7 @@
         interiorLight.translateY(1);
         interiorLight.translateX(0.5);
 
-        if (throttle) {
+        if (engine && throttle) {
           if (currentGear === "drive") {
             physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePower);
           } else if (currentGear === "reverse") {
@@ -407,6 +481,22 @@
           }
         }
 
+        if (collisionWarning) {
+          if (!gaveCollisionWarning) audio.warning();
+          if (frame % 6 < 4) {
+            car.getObjectByName("Control_Screen").material.color.g = 0.3;
+            car.getObjectByName("Control_Screen").material.color.b = 0.3;
+          } else {
+            car.getObjectByName("Control_Screen").material.color.g = 1;
+            car.getObjectByName("Control_Screen").material.color.b = 1;
+          }
+          gaveCollisionWarning = true;
+        } else {
+          gaveCollisionWarning = false;
+          car.getObjectByName("Control_Screen").material.color.g = 1;
+          car.getObjectByName("Control_Screen").material.color.b = 1;
+        }
+
         if (currentGear === "drive") {
           car.getObjectByName("Shifter").rotation.x = -0.3;
         } else if (currentGear === "neutral") {
@@ -418,20 +508,41 @@
         }
 
         if (ground && carColliders.length > 0) {
+          const spotDistancesTemp = [];
           ground.traverse(wallPoint => {
+            const wallPointPosition = wallPoint.getWorldPosition(new THREE.Vector3());
+
             for (let i = 0; i < carColliders.length; i++) {
-            let collider = carColliders[i];
-          
-            if (wallPoint.name.startsWith("WallPoint")){
-              if (collider.name.startsWith("Collider")){
-                  if (collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPoint.getWorldPosition(new THREE.Vector3())) < 0.4) gameOver("outofbounds");
+              let collider = carColliders[i];
+            
+              if (wallPoint.name.startsWith("WallPoint")) {
+                if (collider.name.startsWith("Collider")) {
+                  if (collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPointPosition) < 0.4) gameOver("outofbounds");
+                  if (collider.name === "Collider_RM") {
+                    if (currentGear === "reverse" && collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPointPosition) < 2 && !collisionWarning) {
+                      collisionWarning = true;
+                      setTimeout(() => collisionWarning = false, 6000);
+                    }
+                  }
                 }
               }
             }
+
+            if (wallPoint.name.startsWith("Corner")) {
+              spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+            }
           });
+          spotDistances = spotDistancesTemp;
         }
       }
       physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
+
+      camera.fov = 55 + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
+      camera.updateProjectionMatrix();
+
+      renderer.setRenderTarget(reverseRenderTarget);
+      renderer.render(scene, reverseCamera);
+      renderer.setRenderTarget(null);
 
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
@@ -473,46 +584,15 @@
     document.addEventListener("keydown", function(event) {
       if (event.key === "ArrowUp" && !event.repeat) {
         if (controlLock === "Shifter") {
-          if (currentGear === "drive") {
-            currentGear = "neutral";
-            Notiflix.Notify.info("Car is now in neutral.");
-          } else if (currentGear === "neutral") {
-            currentGear = "reverse";
-            physics.env.currentGear = "reverse";
-            Notiflix.Notify.info("Car is now in reverse.");
-          } else if (currentGear === "reverse") {
-            currentGear = "park";
-          }
-          if (currentGear === "reverse") {
-            car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
-            car.getObjectByName("Reverse_Lights").material.opacity = 1;
-          } else {
-            car.getObjectByName("Reverse_Lights").material.opacity = 0;
-          }
+          shift("up");
         } else {
+          if (engine && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
           throttle = true;
         }
       }
       if (event.key === "ArrowDown" && !event.repeat) {
         if (controlLock === "Shifter") {
-          if (currentGear === "park") {
-            currentGear = "reverse";
-            physics.env.currentGear = "reverse";
-            Notiflix.Notify.info("Car is now in reverse.");
-          } else if (currentGear === "reverse") {
-            currentGear = "neutral";
-            Notiflix.Notify.info("Car is now in neutral.");
-          } else if (currentGear === "neutral") {
-            currentGear = "drive";
-            physics.env.currentGear = "drive";
-            Notiflix.Notify.info("Car is now in drive.");
-          }
-          if (currentGear === "reverse") {
-            car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
-            car.getObjectByName("Reverse_Lights").material.opacity = 1;
-          } else {
-            car.getObjectByName("Reverse_Lights").material.opacity = 0;
-          }
+          shift("down");
         }
       }
       if (event.key === "ArrowLeft") {
@@ -525,19 +605,18 @@
       }
       if (event.key === "Tab" && !event.repeat) {
         event.preventDefault();
+        if (controlLock) return exitControlLock();
         togglePerspective();
       }
       if (event.key === "b" && !event.repeat) {
         braking = true;
         car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
       }
-      if (event.key === "Escape" && controlLock && !event.repeat) {
-        exitControlLock();
-      }
     });
 
     document.addEventListener("keyup", function(event) {
       if (event.key === "ArrowUp") {
+        if (engine && (currentGear === "drive" || currentGear === "reverse")) audio.decelerate();
         throttle = false;
       }
       if (event.key === "ArrowLeft") {
@@ -555,16 +634,31 @@
     });
 
     document.addEventListener("mousedown", function(event) {
+      if (document.pointerLockElement == null && lockPointer) {
+        document.body.requestPointerLock();
+        if (perspective === 0) PointerControls.lock();
+      }
+
       if (intersections[0]) {
         const control = intersections[0].object.name;
         if (!controlLock) {
           if (control === "Shifter") {
             if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
-            pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Esc</span> to exit)");
+            if (!engine) return Notiflix.Notify.warning("Engine must be activated in order to shift gears.");
+            pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Tab</span> to exit)");
             controlLock = "Shifter";
             PointerControls.isLocked = false;
+          } else if (control === "Ignition") {
+            if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped to shut off the engine.");
+            toggleEngine();
           }
         }
+      }
+    });
+
+    document.addEventListener("mouseup", (event) => {
+      if (PointerControls.isLocked && lockPointer) {
+        if (perspective === 0) PointerControls.lock();
       }
     });
 
@@ -623,7 +717,10 @@
           scene.add(ground);
         });
 
+        controlScreenMap = new THREE.TextureLoader().load("/control_screen.png");
         car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
+        car.getObjectByName("Control_Screen").material = new THREE.MeshBasicMaterial({ map: controlScreenMap });
+        car.getObjectByName("CameraHolder_Reverse").add(reverseCamera);
 
         raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Lever"), car.getObjectByName("Lever_Alt"), car.getObjectByName("Shifter"), car.getObjectByName("Control_Screen")];
         raycastTargets.forEach((control, index) => {
