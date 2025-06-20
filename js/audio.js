@@ -25,10 +25,29 @@ audio = {
       audio.sounds.idle.play();
     }, 4000);
   },
+  on: function() {
+    audio.sounds.on.play();
+    audio.idlePlayTimeout = setTimeout(() => {
+      audio.sounds.idle.currentTime = 0;
+      audio.sounds.idle.play();
+    }, 500);
+  },
+  off: function() {
+    audio.sounds.off.play();
+    audio.idlePauseTimeout = setTimeout(() => {
+      audio.sounds.idle.pause();
+      audio.sounds.idle.currentTime = 0;
+    }, 100);
+  },
   warning: function() {
     audio.sounds.warning.pause();
     audio.sounds.warning.currentTime = 0;
     audio.sounds.warning.play();
+  },
+  click: function() {
+    audio.sounds.click.pause();
+    audio.sounds.click.currentTime = 0;
+    audio.sounds.click.play();
   },
   end: function() {
     Object.values(audio.sounds).forEach(sound => (sound.pause(), sound.currentTime = 0));
@@ -41,7 +60,12 @@ audio = {
     "accelerate": new Audio("/sounds/engine_accelerate.mp3"),
     "decelerate": new Audio("/sounds/engine_decelerate.mp3"),
     "idle": new Audio("/sounds/engine_idle.mp3"),
-    "warning": new Audio("/sounds/car_warning.mp3")
+    "warning": new Audio("/sounds/car_warning.mp3"),
+    "crash": new Audio("/sounds/crash.mp3"),
+    "click": new Audio("/sounds/click.mp3"),
+    "on": new Audio("/sounds/engine_on.mp3"),
+    "off": new Audio("/sounds/engine_off.mp3"),
+    "horn": new Audio("/sounds/horn.mp3"),
   }
 };
 
