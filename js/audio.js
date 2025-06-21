@@ -66,6 +66,7 @@ audio = {
     "on": new Audio("/sounds/engine_on.mp3"),
     "off": new Audio("/sounds/engine_off.mp3"),
     "horn": new Audio("/sounds/horn.mp3"),
+    "drumroll": new Audio("/sounds/drum_roll.mp3"),
   }
 };
 

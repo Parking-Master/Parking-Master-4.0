@@ -203,6 +203,7 @@
     <script src="/js/three.js"></script>
     <script src="/js/GLTFLoader.js"></script>
     <script src="/js/PointerLockControls.js"></script>
+    <script src="/js/GamepadControls.js"></script>
     <script src="/js/Tween.js"></script>
     <script src="/js/physics.js"></script>
     <script src="/js/audio.js"></script>
@@ -264,6 +265,8 @@
     let engine = true;
     let throttle = false;
     let braking = false;
+    let overrideEngineReset = false;
+    let keyboardBraking = false;
     let intersections = null;
     let frame = 0;
     let controlLock = null;
@@ -296,6 +299,7 @@
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
 
+    camera.rotation.order = "YXZ";
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
@@ -491,6 +495,9 @@
 
       let inSpot = spotDistances.filter(x => x < 2).length === 4;
       if (inSpot) {
+        countingDown = false;
+        audio.sounds.drumroll.play();
+
         swal({
           text: "Your score was...",
           button: false,
@@ -522,8 +529,6 @@
             location.replace("/levels/lvl1.html");
           });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
-
-          countingDown = false;
         }, 4000);
 
         return true;
@@ -589,12 +594,12 @@
             physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePowerReverse);
           }
         } else {
-          physics.env.enginePower = 0;
+          if (!overrideEngineReset) physics.env.enginePower = 0;
         }
 
         if (braking) {
           physics.env.braking = true;
-          physics.env.brakePower = Math.min(physics.env.brakePower + 500, physics.env.maxBrakePower);
+          if (keyboardBraking) physics.env.brakePower = Math.min(physics.env.brakePower + 500, physics.env.maxBrakePower);
         } else {
           physics.env.braking = false;
           physics.env.brakePower = 0;
@@ -676,7 +681,7 @@
       camera.fov = 55 + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
       camera.updateProjectionMatrix();
 
-      if (countingDown) {
+      if (frame % 5 === 0 && countingDown) {
         const timeLeft = (presets.time * 1000) - (Date.now() - presets.startTimestamp);
         const minutesLeft = timeLeft / 1000 / 60;
         const secondsLeft = ("." + minutesLeft.toString().split(".")[1]) * 60;
@@ -755,6 +760,7 @@
         togglePerspective();
       }
       if (event.key === "b" && !event.repeat) {
+        keyboardBraking = true;
         braking = true;
         car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
       }
@@ -775,6 +781,7 @@
       }
       if (event.key === "b") {
         braking = false;
+        keyboardBraking = false;
         car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
       }
     });
