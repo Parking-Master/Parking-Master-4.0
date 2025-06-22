@@ -163,7 +163,6 @@ function handleButtonEvents() {
   for (let i = 0; i < gamepad.buttons.length; i++) {
     const buttonPressed = gamepad.buttons[i].value > 0.01;
     if (buttonPressed && (buttonRepeatExceptions.includes(i) ? true : !previousButtonStates[i])) {
-      console.log(gamepad.buttons[i].value)
       onButtonPressed(i, gamepad.buttons[i].value);
     } else if (!buttonPressed && previousButtonStates[i]) {
       onButtonReleased(i);

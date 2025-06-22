@@ -255,6 +255,9 @@
       hidePointerText();
     }
 
+    let selectedCar = "Honda_Civic_Sport_Touring";
+    let currentLevel = 1;
+
     let car = null;
     let ground = null;
     let carColliders = [];
@@ -372,28 +375,7 @@
           closeOnClickOutside: false
         }).then(result => {
           if (!result) {
-            physics.env.enginePower = 0;
-            physics.env.speedMS = 0;
-            physics.env.heading = 0;
-            resetCarPosition();
-            togglePerspective(0);
-            perspective = 0;
-            camera.rotation.set(0, 0, 0);
-            lockPointer = true;
-            shift("drive");
-            audio.sounds.idle.play();
-
-            stopAnimate = false;
-            animate();
-
-            crashed = false;
-
-            presets.startTimestamp = Date.now();
-            countingDown = true;
-
-            document.querySelector(".banner").style.opacity = 0;
-
-            swal.close();
+            resetEverything();
           } else {
             location.replace("/");
           }
@@ -526,7 +508,8 @@
           }).then(() => {
             if (!localStorage["points"]) localStorage.setItem("points", 0);
             localStorage.setItem("points", (localStorage["points"] - 0) + 1);
-            location.replace("/levels/lvl1.html");
+
+            loadLevel(currentLevel + 1);
           });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
         }, 4000);
@@ -561,6 +544,64 @@
         car.getObjectByName("Control_Screen").visible = true;
         Notiflix.Notify.info("Engine has been activated.");
       }
+    }
+
+    function loadEnv(level) {
+      new THREE.GLTFLoader().load(`/models/parking_lots/lvl${level}.glb`, function(gltf) {
+        ground = gltf.scene;
+
+        let scale = 0.33;
+        let spawner = ground.getObjectByName("Spawner");
+        ground.scale.set(scale, scale, scale);
+
+        resetCarPosition = function() {
+          car.position.set(spawner.position.x * scale, spawner.position.y * scale, spawner.position.z * scale);
+          car.rotation.copy(ground.getObjectByName("Spawner").rotation);
+        };
+        resetCarPosition();
+
+        ground.getObjectByName("Ground").receiveShadow = true;
+        ground.getObjectByName("Ground").material.map.encoding = THREE.sRGBEncoding;
+        ground.getObjectByName("Ground").material.map.minFilter = THREE.NearestFilter;
+        ground.getObjectByName("Ground").material.map.magFilter = THREE.NearestFilter;
+        ground.getObjectByName("Ground").material.map.needsUpdate = true;
+
+        scene.add(ground);
+      });
+    }
+
+    function loadLevel(level) {
+      currentLevel = level;
+
+      document.querySelector(".banner").style.opacity = 1;
+
+      stopAnimate = true;
+      scene.remove(ground);
+      loadEnv(level);
+
+      setTimeout(() => {
+        resetEverything();
+      }, 2000);
+    }
+
+    function resetEverything() {
+      physics.env.enginePower = 0;
+      physics.env.speedMS = 0;
+      physics.env.heading = 0;
+      resetCarPosition();
+      togglePerspective(0);
+      perspective = 0;
+      camera.rotation.set(0, 0, 0);
+      lockPointer = true;
+      shift("drive");
+      audio.sounds.idle.play();
+      stopAnimate = false;
+      animate();
+      crashed = false;
+      presets.startTimestamp = Date.now();
+      countingDown = true;
+      document.querySelector(".banner").style.opacity = 0;
+      swal.close();
     }
 
     function animate() {
@@ -823,7 +864,7 @@
     });
 
     function loadVehicle() {
-      new THREE.GLTFLoader().load("/models/cars/Honda_Civic_Sport_Touring.glb", function(gltf) {
+      new THREE.GLTFLoader().load(`/models/cars/${selectedCar}.glb`, function(gltf) {
         car = gltf.scene;
 
         const enginePhysicsKeys = ["finalDrive", "wheelRadius", "maxRPM", "maxRPMReverse"];
@@ -855,27 +896,7 @@
           car.getObjectByName("Exterior_Shell").material.envMap = envMap;
         });
 
-        new THREE.GLTFLoader().load("/models/parking_lots/lvl1.glb", function(gltf) {
-          ground = gltf.scene;
-
-          let scale = 0.33;
-          let spawner = ground.getObjectByName("Spawner");
-          ground.scale.set(scale, scale, scale);
-
-          resetCarPosition = function() {
-            car.position.set(spawner.position.x * scale, spawner.position.y * scale, spawner.position.z * scale);
-            car.rotation.copy(ground.getObjectByName("Spawner").rotation);
-          };
-          resetCarPosition();
-
-          ground.getObjectByName("Ground").receiveShadow = true;
-          ground.getObjectByName("Ground").material.map.encoding = THREE.sRGBEncoding;
-          ground.getObjectByName("Ground").material.map.minFilter = THREE.NearestFilter;
-          ground.getObjectByName("Ground").material.map.magFilter = THREE.NearestFilter;
-          ground.getObjectByName("Ground").material.map.needsUpdate = true;
-
-          scene.add(ground);
-        });
+        loadEnv(currentLevel);
 
         controlScreenMap = new THREE.TextureLoader().load("/control_screen.png");
         car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
