@@ -211,12 +211,12 @@
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
     <div class="ui">
-      <div class="banner"></div>
+      <div class="banner" style="opacity: 1; background: #fff"></div>
       <div class="pointer"></div>
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
         <p class="infobox-header">Objective</p>
-        <p class="infobox-level">Level 1 / 15</p>
+        <p class="infobox-level">Level <span id="value">1</span> / 15</p>
         <p class="infobox-timer">0:00</p>
         <br>
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
@@ -262,6 +262,7 @@
     let ground = null;
     let carColliders = [];
     let spotDistances = [];
+    let spotDistancesBlue = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -476,7 +477,9 @@
       lockPointer = false;
 
       let inSpot = spotDistances.filter(x => x < 2).length === 4;
-      if (inSpot) {
+      let inBluespot = spotDistancesBlue.filter(x => x < 2).length === 4;
+      if (inSpot || inBluespot) {
+        const spotDistancesTemp = inSpot ? spotDistances : spotDistancesBlue;
         countingDown = false;
         audio.sounds.drumroll.play();
 
@@ -489,10 +492,16 @@
         });
         document.querySelector(".swal-modal").style = "animation: implode 4s ease !important";
 
-        let parkingFactor = spotDistances.map(x => spotDistances.map(d => Math.abs(x - d))).flat().reduce((a, b) => a + b) / 16;
+        let parkingFactor = spotDistancesTemp.map(x => spotDistancesTemp.map(d => Math.abs(x - d))).flat().reduce((a, b) => a + b) / 16;
         let score = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 11), 10), 1);
         let text = score > 9 ? "Perfect job! You're an expert." : score > 6 ? "Great job! Keep it up." : score > 4 ? "Nice work, but you could do a little better." : score > 1 ? "Not terrible... But try to do better." : "Yikes.";
         let grade = score > 7 ? "A" : score > 4 ? "B" : "C";
+        let points = 1;
+
+        if (inBluespot) {
+          points = 2;
+          text = "You parked in a bluespot. You earned extra points!";
+        }
 
         new Image().src = `/images/grade_${grade}.png`;
 
@@ -500,18 +509,21 @@
           swal({
             icon: `/images/grade_${grade}.png`,
             title: `${score} out of 10`,
-            text: text,
+            text: `${text} +${points} points`,
             button: "Next level",
             closeOnEnterKey: false,
             closeOnEsc: false,
             closeOnClickOutside: false
           }).then(() => {
+            document.querySelector(".swal-modal").style.border = "";
+
             if (!localStorage["points"]) localStorage.setItem("points", 0);
-            localStorage.setItem("points", (localStorage["points"] - 0) + 1);
+            localStorage.setItem("points", (localStorage["points"] - 0) + points);
 
             loadLevel(currentLevel + 1);
           });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
+          if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
         }, 4000);
 
         return true;
@@ -566,6 +578,10 @@
         ground.getObjectByName("Ground").material.map.magFilter = THREE.NearestFilter;
         ground.getObjectByName("Ground").material.map.needsUpdate = true;
 
+        if (ground.children[0].userData.time) {
+          presets.time = ground.children[0].userData.time;
+        }
+
         scene.add(ground);
       });
     }
@@ -573,6 +589,7 @@
     function loadLevel(level) {
       currentLevel = level;
 
+      document.querySelector(".banner").style.background = "#fff";
       document.querySelector(".banner").style.opacity = 1;
 
       stopAnimate = true;
@@ -581,6 +598,10 @@
 
       setTimeout(() => {
         resetEverything();
+        document.querySelector(".infobox-level #value").textContent = level;
+        setTimeout(() => {
+          document.querySelector(".banner").style.background = "";
+        }, 2000);
       }, 2000);
     }
 
@@ -690,6 +711,7 @@
         }
 
         if (ground && carColliders.length > 0) {
+          const spotDistancesBlueTemp = [];
           const spotDistancesTemp = [];
           ground.traverse(wallPoint => {
             const wallPointPosition = wallPoint.getWorldPosition(new THREE.Vector3());
@@ -711,9 +733,14 @@
             }
 
             if (wallPoint.name.startsWith("Corner")) {
-              spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              if (wallPoint.name.includes("Bluespot")) {
+                spotDistancesBlueTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else {
+                spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              }
             }
           });
+          spotDistancesBlue = spotDistancesBlueTemp;
           spotDistances = spotDistancesTemp;
         }
       }
@@ -769,7 +796,7 @@
         car.getObjectByName("Wheel_FR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
         car.getObjectByName("Wheel_RL").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
         car.getObjectByName("Wheel_RR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
-        document.querySelector(".speed #value").textContent = Math.round(physics.env.speedMPH);
+        if (frame % 5 === 0) document.querySelector(".speed #value").textContent = Math.round(physics.env.speedMPH);
       }
     };
 
@@ -926,6 +953,14 @@
         carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
 
         scene.add(car);
+
+        setTimeout(() => {
+          presets.startTimestamp = Date.now();
+          document.querySelector(".banner").style.opacity = 0;
+          setTimeout(() => {
+            document.querySelector(".banner").style.background = "";
+          }, 2000);
+        }, 2000);
       });
     }
 
