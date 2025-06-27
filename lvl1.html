@@ -781,8 +781,9 @@
     physics.onUpdate = function(delta) {
       if (car) {
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
+        const driveFactor= physics.env.currentGear === "drive" ? 1 : 2;
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
-        car.rotateY(physics.env.currentHeading * delta * shiftFactor);
+        car.rotateY(physics.env.currentHeading * delta * shiftFactor * driveFactor);
 
         if (!manualSteering) {
           physics.env.heading = physics.env.heading - ((physics.env.heading / 25) * (physics.env.speedMS / 10));
@@ -917,7 +918,7 @@
         car.getObjectByName("Wheel_RL").rotation.order = "YXZ";
         car.getObjectByName("Wheel_RR").rotation.order = "YXZ";
 
-        new THREE.TextureLoader().load("/sky.png", function(texture) {
+        new THREE.TextureLoader().load("/images/sky.png", function(texture) {
           let pmremGenerator = new THREE.PMREMGenerator(renderer);
           let envMap = pmremGenerator.fromEquirectangular(texture).texture;
           car.getObjectByName("Exterior_Shell").material.envMap = envMap;
@@ -925,7 +926,7 @@
 
         loadEnv(currentLevel);
 
-        controlScreenMap = new THREE.TextureLoader().load("/control_screen.png");
+        controlScreenMap = new THREE.TextureLoader().load("/images/control_screen.png");
         car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
         car.getObjectByName("Control_Screen").material = new THREE.MeshBasicMaterial({ map: controlScreenMap });
         car.getObjectByName("CameraHolder_Reverse").add(reverseCamera);
