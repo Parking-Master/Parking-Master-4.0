@@ -251,7 +251,7 @@
 
     function exitControlLock() {
       controlLock = null;
-      PointerControls.isLocked = true;
+      if (perspective === 0) PointerControls.isLocked = true;
       hidePointerText();
     }
 
@@ -721,7 +721,13 @@
             
               if (wallPoint.name.startsWith("WallPoint")) {
                 if (collider.name.startsWith("Collider")) {
-                  if (collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPointPosition) < 0.4) gameOver("outofbounds");
+                  if (collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPointPosition) < 0.4) {
+                    if (wallPoint.name.includes("Obstacle")) {
+                      gameOver("crashed");
+                    } else {
+                      gameOver("outofbounds");
+                    }
+                  }
                   if (collider.name === "Collider_RM") {
                     if (currentGear === "reverse" && collider.getWorldPosition(new THREE.Vector3()).distanceTo(wallPointPosition) < 2 && !collisionWarning) {
                       collisionWarning = true;
