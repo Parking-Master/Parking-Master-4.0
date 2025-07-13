@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Parking Master Level 1</title>
     <style>
       @keyframes implode {
         0% {
@@ -145,6 +145,26 @@
       .ui .speed #value {
         font-size: 28px;
       }
+      .ui .points {
+        width: 100px;
+        border-radius: 0;
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        background: transparent;
+        backdrop-filter: blur(5px);
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+        text-align: center;
+        color: #fff;
+        padding: 5px;
+        z-index: 9999;
+        font-size: 16px;
+        text-shadow: 1px 1px #333;
+      }
+      .ui .points #value {
+        font-size: 28px;
+      }
       .swal-modal {
         background: #fff;
         border-radius: 0;
@@ -211,7 +231,7 @@
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
     <div class="ui">
-      <div class="banner" style="opacity: 1; background: #fff"></div>
+      <div class="banner" style="opacity: 1; background: #fff; background-image: url(/images/loading.gif); background-size: cover"></div>
       <div class="pointer"></div>
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
@@ -222,6 +242,7 @@
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
       </div>
       <div class="speed"><span id="value">0</span> MPH</div>
+      <div class="points"><span id="value">0</span> PTS</div>
     </div>
   <script>
     Notiflix.Notify.init({
@@ -263,6 +284,7 @@
     let carColliders = [];
     let spotDistances = [];
     let spotDistancesBlue = [];
+    let spotDistancesMystery = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -284,7 +306,7 @@
     let crashed = false;
     let currentGear = "drive";
     let countingDown = true;
-    let options = { carHeadingMaxIncrement: 0.5, carHeadingIncrement: 0 };
+    let options = { carHeadingMaxIncrement: 1, carHeadingIncrement: 0 };
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -390,8 +412,10 @@
           document.querySelector(".swal-text").textContent = "You ran out of time.";
         } else if (reason === "crashed") {
           document.querySelector(".swal-text").textContent = "You crashed!";
+        } else if (reason === "danger") {
+          document.querySelector(".swal-text").textContent = "You parked in a danger spot.";
         }
-      }, 3000);
+      }, reason === "danger" ? 0 : 3000);
     }
 
     function togglePerspective(newPerspective = null) {
@@ -478,8 +502,10 @@
 
       let inSpot = spotDistances.filter(x => x < 2).length === 4;
       let inBluespot = spotDistancesBlue.filter(x => x < 2).length === 4;
-      if (inSpot || inBluespot) {
-        const spotDistancesTemp = inSpot ? spotDistances : spotDistancesBlue;
+      let inMystery = spotDistancesMystery.filter(x => x < 2).length === 4;
+      let mysterySpot = spotDistancesMystery.filter(x => x < 2);
+      if (inSpot || inBluespot || inMystery) {
+        const spotDistancesTemp = inSpot ? spotDistances : inBluespot ? spotDistancesBlue : mysterySpot;
         countingDown = false;
         audio.sounds.drumroll.play();
 
@@ -503,6 +529,24 @@
           text = "You parked in a bluespot. You earned extra points!";
         }
 
+        if (inMystery) {
+          document.querySelector(".swal-text").textContent = "This mystery spot was...";
+
+          let number = Math.floor(Math.random() * 3);
+          if (number === 0) {
+            return setTimeout(() => {
+              gameOver("danger");
+            }, 4000);
+          } else if (number === 1) {
+            points = 10;
+            text = "You parked in a special spot!";
+          } else if (number === 0) {
+            inSpot = true;
+            inBluespot = true;
+            inMystery = true;
+          }
+        }
+
         new Image().src = `/images/grade_${grade}.png`;
 
         setTimeout(() => {
@@ -524,6 +568,7 @@
           });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
           if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
+          if (inMystery && points >= 10) document.querySelector(".swal-modal").style.border = "5px solid gold";
         }, 4000);
 
         return true;
@@ -588,9 +633,13 @@
 
     function loadLevel(level) {
       currentLevel = level;
+      document.title = "Parking Master Level " + level;
 
       document.querySelector(".banner").style.background = "#fff";
+      document.querySelector(".banner").style.backgroundImage = "url(/images/loading.gif)";
+      document.querySelector(".banner").style.backgroundSize = "cover";
       document.querySelector(".banner").style.opacity = 1;
+      document.querySelector(".points #value").textContent = localStorage["points"];
 
       stopAnimate = true;
       scene.remove(ground);
@@ -667,7 +716,7 @@
           physics.env.brakePower = 0;
         }
 
-        if (frame % 15 === 0) {
+        if (frame % 10 === 0) {
           raycaster.setFromCamera(centerVector, camera);
           intersections = raycaster.intersectObjects(raycastTargets).filter(x => x.object.name);
           for (let i = 0; i < raycastTargets.length; i++) {
@@ -711,6 +760,7 @@
         }
 
         if (ground && carColliders.length > 0) {
+          const spotDistancesMysteryTemp = [];
           const spotDistancesBlueTemp = [];
           const spotDistancesTemp = [];
           ground.traverse(wallPoint => {
@@ -741,12 +791,16 @@
             if (wallPoint.name.startsWith("Corner")) {
               if (wallPoint.name.includes("Bluespot")) {
                 spotDistancesBlueTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else if (wallPoint.name.includes("Mystery")) {
+                spotDistancesMysteryTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               } else {
                 spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               }
             }
           });
+
           spotDistancesBlue = spotDistancesBlueTemp;
+          spotDistancesMystery = spotDistancesMysteryTemp;
           spotDistances = spotDistancesTemp;
         }
       }
@@ -773,8 +827,6 @@
       requestAnimationFrame(animate);
     }
 
-    animate();
-
     function onWindowResize() {
       renderer.setPixelRatio(1);
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -792,7 +844,7 @@
         car.rotateY(physics.env.currentHeading * delta * shiftFactor * driveFactor);
 
         if (!manualSteering) {
-          physics.env.heading = physics.env.heading - ((physics.env.heading / 25) * (physics.env.speedMS / 10));
+          physics.env.heading = physics.env.heading - ((physics.env.heading / 22) * (physics.env.speedMS / 8));
         }
 
         car.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
@@ -960,8 +1012,11 @@
         carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
 
         scene.add(car);
+        animate();
 
         setTimeout(() => {
+          document.querySelector(".points #value").textContent = localStorage["points"];
+
           presets.startTimestamp = Date.now();
           document.querySelector(".banner").style.opacity = 0;
           setTimeout(() => {

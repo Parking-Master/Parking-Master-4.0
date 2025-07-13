@@ -152,7 +152,7 @@ function handleDirectionalMovement() {
     }
   } else {
     stopped = false;
-    TweenCache.stop();
+    if (TweenCache) TweenCache.stop();
     options.carHeadingIncrement = -moveX / 1.5;
   }
 }
@@ -262,7 +262,7 @@ buttonBindings = {
     buttonRepeats["rt"] = true;
 
     if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) {
-      let multiplier = Math.min((Date.now() - GamepadControls.accelerateTimestamp) / 4000, 1);
+      let multiplier = Math.min((Date.now() - GamepadControls.accelerateTimestamp) / 8000, 1);
       overrideEngineReset = true;
       physics.env.enginePower = physics.env.maxEnginePower * (value * multiplier);
     }

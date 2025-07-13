@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Master 4.0</title>
+    <style>
+      html, body {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      .wrapper {
+        width: 1536px;
+        height: 731px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-top: -365.5px;
+        margin-left: -768px;
+      }
+      img.menu-image {
+        position: absolute;
+        width: 1000px;
+        left: 50%;
+        margin-left: -500px;
+        border: 4px solid #aaa;
+        bottom: 30px;
+      }
+      img.menu-tiremarks-image {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        rotate: -5deg;
+        pointer-events: none;
+      }
+      .button {
+        background: #aaa;
+        font-size: 18px;
+        color: #000;
+        padding: 8px;
+        width: 220px;
+        border: 3px solid #000;
+        border-radius: 8px;
+        position: relative;
+        margin: auto;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+      .button::after {
+        content: "";
+        width: 7px;
+        height: 25px;
+        background: #aaa;
+        position: absolute;
+        left: 50%;
+        margin-left: -40px;
+        margin-top: 20px;
+      }
+      .button:hover {
+        transform: scale(1.05);
+        background: #ccc;
+      }
+      .button:active {
+        background: #999;
+      }
+      .button:hover::after {
+        background: #ccc;
+      }
+      .button:active::after {
+        background: #999;
+      }
+      .button span {
+        font-size: 11px;
+        position: absolute;
+        background: #333;
+        color: #fff;
+        margin-top: -60px;
+        padding: 4px;
+        text-align: center;
+        border-radius: 6px;
+        display: none;
+        width: 200px;
+      }
+      .button:hover span {
+        display: block;
+      }
+      .button-wrapper {
+        position: absolute;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        width: 1050px;
+        left: 50%;
+        margin-left: -520px;
+        bottom: 525px;
+      }
+      h1 {
+        position: relative;
+        font-size: 64px;
+        font-weight: 200;
+        text-align: center;
+        margin-top: 20px;
+        pointer-events: none;
+      }
+      h2 {
+        position: relative;
+        font-size: 32px;
+        font-weight: 100;
+        text-align: center;
+        margin-top: -40px;
+      }
+      .background {
+        position: absolute;
+        font-size: 1200px;
+        opacity: 0.1;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        top: -300px !important;
+      }
+      .banner {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin: 0;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s;
+      }
+      .overflow-menu {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+      .overflow-menu-item {
+        background: #aaa;
+        width: 100px;
+        height: 8px;
+        margin-bottom: 5px;
+        transition: height 0.3s, padding 0.3s;
+        text-align: center;
+        cursor: default;
+      }
+      .overflow-menu-item span {
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .overflow-menu-item:hover {
+        height: 20px;
+        padding: 3px 0;
+        border: 2px solid #000;
+        margin-left: -1px;
+        margin-top: -1px;
+      }
+      .overflow-menu-item:active {
+        background: #888;
+      }
+      .overflow-menu-item:hover span {
+        opacity: 1;
+      }
+      .banner-wrapper {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        background: #fff;
+        pointer-events: none;
+        z-index: 10000;
+      }
+      .progress-track {
+        position: absolute;
+        border: 1px solid #333;
+        width: 400px;
+        height: 10px;
+        left: 50%;
+        top: 50%;
+        margin-left: -150px;
+        margin-top: -5px;
+      }
+      .progress-bar {
+        position: absolute;
+        background: #333;
+        width: 0;
+        height: 100%;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        transition: width 1s;
+      }
+      .info {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        font-size: 14px;
+        text-align: right;
+      }
+      a {
+        color: #416dea !important;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <audio id="menu-audio" src="https://cdn.jsdelivr.net/gh/Parking-Master/Parking-Master@latest/index/menu-audio.mp3" autoplay="" loop=""></audio>
+    <div class="wrapper">
+      <div class="banner-wrapper">
+        <div class="progress-track">
+          <div class="progress-bar"></div>
+        </div>
+      </div>
+      <div class="background">4</div>
+      <div class="overflow-menu">
+        <div class="overflow-menu-item"><span>LOG IN</span></div>
+        <div class="overflow-menu-item"><span>SIGN UP</span></div>
+        <div class="overflow-menu-item"><span>SETTINGS</span></div>
+      </div>
+      <h1>PARKING MASTER</h1>
+      <h2>4.0</h2>
+      <div class="button-wrapper">
+        <button class="button" onclick="play()">PLAY<span>Test your parking skills in 15 levels.</span></button>
+        <button class="button" onclick="test()">TEST<span>Test your driving skills and get graded!</span></button>
+        <button class="button">MULTIPLAYER<span>Play a quick minigame against others.</span></button>
+        <button class="button">SHOP<span>Buy or sell a car!</span></button>
+      </div>
+      <div class="info">
+        <p>1.0.0</p>
+        <p>&copy; 2025 <a href="https://github.com/Parking-Master" target="_blank">Parking Master</a></p>
+      </div>
+      <img class="menu-image" src="/images/menu.png">
+      <img class="menu-tiremarks-image" src="/images/menu1.png">
+      <div class="banner"></div>
+    </div>
+    <script>
+      function onWindowResize() {
+        let averageScale = window.innerHeight / 731;
+        let minWidth = 1536 * averageScale;
+        if (window.innerWidth < minWidth) {
+          // Scale the UI based on the width of window
+          wrapperScale = (window.innerWidth / 1536);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        } else {
+          // Scale the UI based on the height of window
+          wrapperScale = (window.innerHeight / 731);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        }
+      }
+      window.addEventListener("resize", onWindowResize);
+      onWindowResize();
+
+      function play() {
+        document.querySelector(".banner").style.opacity = 1;
+        setTimeout(() => {
+          location.href = "/play.html";
+        }, 1000);
+      }
+      function test() {
+        document.querySelector(".banner").style.opacity = 1;
+        setTimeout(() => {
+          location.href = "/test.html";
+        }, 1000);
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        document.querySelector(".progress-bar").style.width = "100%";
+        setTimeout(() => {
+          document.querySelector(".banner-wrapper").remove();
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

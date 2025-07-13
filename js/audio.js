@@ -7,7 +7,7 @@ audio = {
     clearTimeout(audio.acceleratePauseTimeout);
     clearTimeout(audio.idlePlayTimeout);
     audio.deceleratePauseTimeout = setTimeout(() => audio.sounds.decelerate.pause(), 100);
-    audio.sounds.accelerate.currentTime = 0;
+    audio.sounds.accelerate.currentTime = physics.env.speedMPH / 10;
     audio.sounds.accelerate.play();
     audio.idlePauseTimeout = setTimeout(() => {
       audio.sounds.idle.pause();
