@@ -211,11 +211,18 @@
         top: 0;
         bottom: 0;
         margin: 0;
-        background: #000;
+        background-color: #000;
         opacity: 0;
         pointer-events: none;
         z-index: 10000;
         transition: opacity 1s;
+      }
+      .banner.loading {
+        background-image: url(/images/loading.gif);
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #fff !important;
       }
     </style>
   </head>
@@ -231,7 +238,7 @@
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
     <div class="ui">
-      <div class="banner" style="opacity: 1; background: #fff; background-image: url(/images/loading.gif); background-size: cover"></div>
+      <div class="banner loading" style="opacity: 1"></div>
       <div class="pointer"></div>
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
@@ -385,6 +392,7 @@
       if (reason === "outofbounds" || reason === "crashed") audio.sounds.crash.play();
 
       setTimeout(() => {
+        document.querySelector(".banner").classList.remove("loading");
         document.querySelector(".banner").style.opacity = 1;
       }, 1500);
 
@@ -635,9 +643,7 @@
       currentLevel = level;
       document.title = "Parking Master Level " + level;
 
-      document.querySelector(".banner").style.background = "#fff";
-      document.querySelector(".banner").style.backgroundImage = "url(/images/loading.gif)";
-      document.querySelector(".banner").style.backgroundSize = "cover";
+      document.querySelector(".banner").classList.add("loading");
       document.querySelector(".banner").style.opacity = 1;
       document.querySelector(".points #value").textContent = localStorage["points"];
 
@@ -648,9 +654,6 @@
       setTimeout(() => {
         resetEverything();
         document.querySelector(".infobox-level #value").textContent = level;
-        setTimeout(() => {
-          document.querySelector(".banner").style.background = "";
-        }, 2000);
       }, 2000);
     }
 
@@ -671,7 +674,6 @@
       presets.startTimestamp = Date.now();
       countingDown = true;
       document.querySelector(".banner").style.opacity = 0;
-      swal.close();
     }
 
     function animate() {
@@ -1019,9 +1021,6 @@
 
           presets.startTimestamp = Date.now();
           document.querySelector(".banner").style.opacity = 0;
-          setTimeout(() => {
-            document.querySelector(".banner").style.background = "";
-          }, 2000);
         }, 2000);
       });
     }
