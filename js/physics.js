@@ -55,7 +55,7 @@ physics = {
     return availablePower / Math.max(speed, 1);
   },
   calculateTurningAngle: function(v, d, a) {
-    return (v / d) * Math.tan(a * (Math.PI / 180));
+    return (v / d) * Math.tan((a / (Math.max(physics.env.speedMPH, 10) / 10)) * (Math.PI / 180));
   },
   calculateWheelRPM: function(vMPH, wdIn) {
     return (vMPH * 63360) / (wdIn * Math.PI * 60);

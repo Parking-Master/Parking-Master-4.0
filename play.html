@@ -292,6 +292,7 @@
     let spotDistances = [];
     let spotDistancesBlue = [];
     let spotDistancesMystery = [];
+    let spotDistancesHandicap = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -422,6 +423,8 @@
           document.querySelector(".swal-text").textContent = "You crashed!";
         } else if (reason === "danger") {
           document.querySelector(".swal-text").textContent = "You parked in a danger spot.";
+        } else if (reason === "handicap") {
+          document.querySelector(".swal-text").textContent = "You parked in a handicap spot.";
         }
       }, reason === "danger" ? 0 : 3000);
     }
@@ -511,8 +514,11 @@
       let inSpot = spotDistances.filter(x => x < 2).length === 4;
       let inBluespot = spotDistancesBlue.filter(x => x < 2).length === 4;
       let inMystery = spotDistancesMystery.filter(x => x < 2).length === 4;
+      let inHandicap = spotDistancesHandicap.filter(x => x < 2).length === 4;
       let mysterySpot = spotDistancesMystery.filter(x => x < 2);
-      if (inSpot || inBluespot || inMystery) {
+      if (inSpot || inBluespot || inMystery || inHandicap) {
+        if (inHandicap) return gameOver("handicap");
+
         const spotDistancesTemp = inSpot ? spotDistances : inBluespot ? spotDistancesBlue : mysterySpot;
         countingDown = false;
         audio.sounds.drumroll.play();
@@ -764,6 +770,7 @@
         if (ground && carColliders.length > 0) {
           const spotDistancesMysteryTemp = [];
           const spotDistancesBlueTemp = [];
+          const spotDistancesHandicapTemp = [];
           const spotDistancesTemp = [];
           ground.traverse(wallPoint => {
             const wallPointPosition = wallPoint.getWorldPosition(new THREE.Vector3());
@@ -795,6 +802,8 @@
                 spotDistancesBlueTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               } else if (wallPoint.name.includes("Mystery")) {
                 spotDistancesMysteryTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else if (wallPoint.name.includes("Handicap")) {
+                spotDistancesHandicapTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               } else {
                 spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               }
@@ -803,6 +812,7 @@
 
           spotDistancesBlue = spotDistancesBlueTemp;
           spotDistancesMystery = spotDistancesMysteryTemp;
+          spotDistancesHandicap = spotDistancesHandicapTemp;
           spotDistances = spotDistancesTemp;
         }
       }
