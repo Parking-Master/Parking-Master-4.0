@@ -292,7 +292,7 @@
         width: 30px;
         height: 100px;
         background: #fff;
-        bottom: 80px;
+        bottom: 60px;
         -webkit-tap-highlight-color: transparent;
         transition: transform .5s ease-out;
         background-image: url(/images/pedal.png);
@@ -307,6 +307,17 @@
       }
       .mobile-ui .pedal.right-pedal {
         right: 10px;
+      }
+      .mobile-ui .steering-wheel {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        width: 150px;
+        height: 150px;
+        margin-left: -75px;
+        background-image: url(/images/steering_wheel.png);
+        background-repeat: no-repeat;
+        background-size: cover;
       }
     </style>
   </head>
@@ -341,11 +352,16 @@
         </div>
         <button class="pedal left-pedal"></button>
         <button class="pedal right-pedal"></button>
+        <div class="steering-wheel"></div>
       </div>
     </div>
   <script>
-    mobile = false;
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) mobile = true;
+    let mobile = false;
+    let startAngle = 0;
+    let startRotation = 0;
+    let currentRotation = 0;
+
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in document.documentElement)) mobile = true;
 
     if (mobile) {
       document.body.style.background = "#000";
@@ -383,6 +399,48 @@
         driveStop();
       });
 
+      let wheel = document.querySelector(".mobile-ui .steering-wheel");
+      
+      function getTouchAngle(touch, el) {
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = touch.clientX - centerX;
+        const dy = touch.clientY - centerY;
+        return (Math.atan2(dy, dx) * (180 / Math.PI)) - 90;
+      }
+      
+      wheel.addEventListener("touchstart", function(event) {
+        event.preventDefault();
+        manualSteering = true;
+        if (event.touches.length === 1) {
+          startAngle = getTouchAngle(event.touches[0], this);
+          startRotation = currentRotation;
+        }
+      });
+      
+      let prevRotation = 0;
+      wheel.addEventListener("touchmove", function(event) {
+        if (event.touches.length === 1) {
+          const curAngle = getTouchAngle(event.touches[0], this);
+          let angleDiff = curAngle - startAngle;
+      
+          let newRotation = startRotation + angleDiff;
+
+          if (newRotation > 90) return;
+          if (newRotation < -90) return;
+
+          currentRotation = newRotation;
+
+          if (Math.abs(prevRotation - currentRotation) > 500) return;
+          this.style.transform = `rotate(${currentRotation}deg)`;
+          if (Math.abs(prevRotation - currentRotation) < 10) physics.env.heading = -(currentRotation * (180 / 360));
+      
+          prevRotation = currentRotation;
+      console.log(currentRotation)
+        }
+      });
+      
       document.querySelector(".mobile-ui").style.display = "block";
     }
 
@@ -742,12 +800,12 @@
     }
     
     function driveStart() {
-      if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
+      // if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
       throttle = true;
     }
 
     function driveStop() {
-      if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.decelerate();
+      // if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.decelerate();
       throttle = false;
     }
 
@@ -841,6 +899,12 @@
       presets.startTimestamp = Date.now();
       countingDown = true;
       document.querySelector(".banner").style.opacity = 0;
+      if (mobile) {
+        startAngle = 0;
+        startRotation = 0;
+        currentRotation = 0;
+        document.querySelector(".mobile-ui .steering-wheel").style.transform = "";
+      }
     }
 
     function animate() {
@@ -979,7 +1043,7 @@
           spotDistances = spotDistancesTemp;
         }
       }
-      physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
+      if (!mobile) physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
 
       camera.fov = defaultFov + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
       camera.updateProjectionMatrix();

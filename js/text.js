@@ -65,7 +65,7 @@
     text.translateX((text.scale.x / 2) + 0.1);
     pointer.add(text);
 
-    let arrowTexture = new THREE.TextureLoader().load("/arrow.png");
+    let arrowTexture = new THREE.TextureLoader().load("/images/arrow.png");
     let arrowMaterial = new THREE.MeshBasicMaterial({
       map: arrowTexture,
       transparent: true,
