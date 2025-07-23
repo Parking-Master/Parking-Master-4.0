@@ -117,6 +117,7 @@
         font-size: 12px;
         text-shadow: 1px 1px #333;
         text-align: center;
+        pointer-events: none;
       }
       .ui .infobox-header {
         float: left;
@@ -149,6 +150,7 @@
         z-index: 9999;
         font-size: 16px;
         text-shadow: 1px 1px #333;
+        pointer-events: none;
       }
       .ui .speed #value {
         font-size: 28px;
@@ -169,6 +171,7 @@
         z-index: 9999;
         font-size: 16px;
         text-shadow: 1px 1px #333;
+        pointer-events: none;
       }
       .ui .points #value {
         font-size: 28px;
@@ -289,7 +292,7 @@
       }
       .mobile-ui .pedal {
         position: absolute;
-        width: 30px;
+        width: 35px;
         height: 100px;
         background: #fff;
         bottom: 60px;
@@ -303,28 +306,60 @@
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
       }
       .mobile-ui .pedal.left-pedal {
-        left: 10px;
+        right: 70px;
       }
       .mobile-ui .pedal.right-pedal {
         right: 10px;
       }
       .mobile-ui .steering-wheel {
         position: absolute;
-        /* left: 50%; */
-        bottom: 10px;
-        width: 150px;
-        height: 150px;
-        right: 70px;
+        bottom: 50px;
+        width: 100px;
+        height: 100px;
+        left: 20px;
         background-image: url(/images/steering_wheel.png);
         background-repeat: no-repeat;
         background-size: cover;
         filter: drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white);
+        transition: transform .1s;
       }
-      @media only screen and (max-width:600px) {
-        .mobile-ui .steering-wheel {
-          left: 50%;
-          margin-left: -75px;
-        }
+      .mobile-ui .use {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 90px;
+        margin-left: -45px;
+        margin-top: 10px;
+        padding: 4px;
+        background: #ddd;
+        color: #007AFF;
+        border: 1px solid #fff;
+        border-radius: 6px;
+        font-size: 20px;
+        display: none;
+      }
+      .mobile-ui .shifter-box {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 90px;
+        margin-left: -45px;
+        margin-top: 10px;
+        background: #ddd;
+        color: #007AFF;
+        border-radius: 6px;
+        font-size: 20px;
+        text-align: left;
+        overflow-x: hidden;
+        display: none;
+      }
+      .mobile-ui .shifter-box .shifter-box-option {
+        width: 100%;
+        margin: 0;
+        padding: 4px;
+      }
+      .mobile-ui .shifter-box .shifter-box-option.selected {
+        background: #bbb;
       }
     </style>
   </head>
@@ -360,6 +395,13 @@
         <button class="pedal left-pedal"></button>
         <button class="pedal right-pedal"></button>
         <div class="steering-wheel"></div>
+        <button class="use">Use</button>
+        <div class="shifter-box">
+          <div class="shifter-box-option" data-gear="park" onclick="touchShift(this)">P</div>
+          <div class="shifter-box-option" data-gear="reverse" onclick="touchShift(this)">R</div>
+          <div class="shifter-box-option" data-gear="neutral" onclick="touchShift(this)">N</div>
+          <div class="shifter-box-option selected" data-gear="drive" onclick="touchShift(this)">D</div>
+        </div>
       </div>
     </div>
   <script>
@@ -407,47 +449,52 @@
       });
 
       let wheel = document.querySelector(".mobile-ui .steering-wheel");
-      
-      function getTouchAngle(touch, el) {
-        const rect = el.getBoundingClientRect();
+      let currentRotation = 0;
+      let lastAngle = null;
+
+      function getTouchAngle(touch, element) {
+        const rect = element.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const dx = touch.clientX - centerX;
         const dy = touch.clientY - centerY;
-        return (Math.atan2(dy, dx) * (180 / Math.PI)) - 90;
+        return Math.atan2(dy, dx) * (180 / Math.PI) - 90;
       }
-      
+
       wheel.addEventListener("touchstart", function(event) {
-        event.preventDefault();
-        manualSteering = true;
-        if (event.touches.length === 1) {
-          startAngle = getTouchAngle(event.touches[0], this);
-          startRotation = currentRotation;
+        for (const touch of event.changedTouches) {
+          if (wheel.contains(touch.target)) {
+            event.preventDefault();
+            manualSteering = true;
+            lastAngle = getTouchAngle(touch, this);
+          }
         }
       });
-      
-      let prevRotation = 0;
+
       wheel.addEventListener("touchmove", function(event) {
-        if (event.touches.length === 1) {
-          const curAngle = getTouchAngle(event.touches[0], this);
-          let angleDiff = curAngle - startAngle;
-      
-          let newRotation = startRotation + angleDiff;
+        for (const touch of event.changedTouches) {
+          if (wheel.contains(touch.target)) {
+            event.preventDefault();
 
-          if (newRotation > 90) return;
-          if (newRotation < -90) return;
+            const curAngle = getTouchAngle(touch, this);
+            let deltaAngle = curAngle - lastAngle;
 
-          currentRotation = newRotation;
+            if (deltaAngle > 180) deltaAngle -= 360;
+            if (deltaAngle < -180) deltaAngle += 360;
 
-          if (Math.abs(prevRotation - currentRotation) > 500) return;
-          this.style.transform = `rotate(${currentRotation}deg)`;
-          if (Math.abs(prevRotation - currentRotation) < 10) physics.env.heading = -(currentRotation * (180 / 360));
-      
-          prevRotation = currentRotation;
-      console.log(currentRotation)
+            currentRotation += deltaAngle;
+
+            if (currentRotation > 120) currentRotation = 120;
+            if (currentRotation < -120) currentRotation = -120;
+
+            this.style.transform = `rotate(${currentRotation}deg)`;
+            physics.env.heading = -(currentRotation * (100 / 360));
+
+            lastAngle = curAngle;
+          }
         }
       });
-      
+
       document.querySelector(".mobile-ui").style.display = "block";
     }
 
@@ -699,6 +746,10 @@
         currentGear = direction;
         if (currentGear === "reverse") physics.env.currentGear = "reverse";
         if (currentGear === "drive") physics.env.currentGear = "drive";
+        if (currentGear === "park") {
+          park();
+          Notiflix.Notify.info("Car is now in park.");
+        }
       }
 
       if (currentGear === "reverse") {
@@ -713,7 +764,7 @@
 
     function park() {
       exitControlLock();
-      document.exitPointerLock();
+      if (document.exitPointerLock) document.exitPointerLock();
       lockPointer = false;
 
       let inSpot = spotDistances.filter(x => x < 2).length === 4;
@@ -911,6 +962,10 @@
         startRotation = 0;
         currentRotation = 0;
         document.querySelector(".mobile-ui .steering-wheel").style.transform = "";
+        document.querySelector(".mobile-ui .use").style.display = "";
+        document.querySelector(".mobile-ui .shifter-box").style.display = "";
+        document.querySelector(".mobile-ui .shifter-box-option.selected").classList.remove("selected");
+        document.querySelector(".mobile-ui .shifter-box-option[data-gear='drive']").classList.add("selected");
       }
     }
 
@@ -1153,8 +1208,8 @@
       }
     });
 
-    document.addEventListener("mousedown", function(event) {
-      if (document.pointerLockElement == null && lockPointer) {
+    function mousedown(event) {
+      if (!mobile && document.pointerLockElement == null && lockPointer) {
         document.body.requestPointerLock();
         if (perspective === 0) PointerControls.lock();
       }
@@ -1166,7 +1221,7 @@
           if (control.includes("Shifter")) {
             if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
             if (!engine) return Notiflix.Notify.warning("Engine must be activated in order to shift gears.");
-            pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Tab</span> to exit)");
+            if (!mobile) pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Tab</span> to exit)");
             controlLock = "Shifter";
             PointerControls.isLocked = false;
           } else if (control.includes("Ignition")) {
@@ -1177,9 +1232,9 @@
           }
         }
       }
-    });
+    }
 
-    document.addEventListener("mouseup", (event) => {
+    function mouseup(event) {
       if (PointerControls.isLocked && lockPointer) {
         if (perspective === 0) PointerControls.lock();
       }
@@ -1187,7 +1242,19 @@
         audio.sounds.horn.pause();
         audio.sounds.horn.currentTime = 0;
       }, 200);
-    });
+    }
+
+    document.addEventListener("mousedown", mousedown);
+    document.addEventListener("mouseup", mouseup);
+
+    function touchShift(element) {
+      if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
+      if (!engine) return Notiflix.Notify.warning("Engine must be activated in order to shift gears.");
+      audio.click();
+      shift(element.dataset.gear);
+      document.querySelector(".shifter-box-option.selected").classList.remove("selected");
+      element.classList.add("selected");
+    }
 
     function loadVehicle() {
       new THREE.GLTFLoader().load(`/models/cars/${selectedCar}.glb`, function(gltf) {

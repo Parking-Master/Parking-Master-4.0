@@ -11,20 +11,27 @@ THREE.TouchControls = function(camera, element) {
       camera.rotation.x -= (touch.pageY - previousTouch.pageY) / (500 / this.speed);
     }
     previousTouch = touch;
+
+    let shownUseButton = false;
+    if (intersections[0]) {
+      if (!shownUseButton) {
+        shownUseButton = true;
+        const control = intersections.map(x => x.object.name);
+        if (control.includes("Shifter")) {
+          document.querySelector(".mobile-ui .shifter-box").style.display = "block";
+        } else {
+          document.querySelector(".mobile-ui .use").style.display = "block";
+        }
+      } else {
+        shownUseButton = false;
+      }
+    } else {
+      document.querySelector(".mobile-ui .shifter-box").style.display = "";
+      document.querySelector(".mobile-ui .use").style.display = "";
+    }
   });
   element.addEventListener("touchstart", (event) => {
     event.preventDefault();
-    if (event.touches[1]) {
-      this.action("hand", {
-        type: "negative"
-      });
-    } else {
-      if (typeof this.action == "function") {
-        this.action("hand", {
-          type: "positive"
-        });
-      }
-    }
   });
   element.addEventListener("touchend", (event) => {
     event.preventDefault();
