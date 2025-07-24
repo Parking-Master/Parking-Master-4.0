@@ -109,6 +109,10 @@ audio = {
     clearTimeout(audio.deceleratePauseTimeout);
     clearTimeout(audio.idlePauseTimeout);
     clearTimeout(audio.idlePlayTimeout);
+  },
+  tap: function() {
+    audio.sounds.tap.currentTime = 0;
+    audio.sounds.tap.play();
   }
 };
 
@@ -122,7 +126,8 @@ audio.sounds = {
   "on": AudioWrapper("/sounds/engine_on.mp3"),
   "off": AudioWrapper("/sounds/engine_off.mp3"),
   "horn": AudioWrapper("/sounds/horn.mp3"),
-  "drumroll": AudioWrapper("/sounds/drum_roll.mp3")
+  "drumroll": AudioWrapper("/sounds/drum_roll.mp3"),
+  "tap": AudioWrapper("/sounds/mobile_tap.mp3")
 };
 
 audio.sounds.idle.loop = true;

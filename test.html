@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Parking Master Driving Test</title>
     <style>
       @keyframes implode {
@@ -31,6 +33,17 @@
         }
       }
 
+      html, body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        touch-action: none !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -khtml-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
       .start-banner {
         position: absolute;
         width: 100%;
@@ -47,10 +60,6 @@
         background-image: url(/images/test.png);
         background-size: cover;
         z-index: 10001;
-      }
-      html, body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
       }
       canvas {
         position: relative;
@@ -126,6 +135,7 @@
         font-size: 12px;
         text-shadow: 1px 1px #333;
         text-align: center;
+        pointer-events: none;
       }
       .ui .infobox-header {
         float: left;
@@ -158,6 +168,7 @@
         z-index: 9999;
         font-size: 16px;
         text-shadow: 1px 1px #333;
+        pointer-events: none;
       }
       .ui .speed #value {
         font-size: 28px;
@@ -178,6 +189,7 @@
         z-index: 9999;
         font-size: 16px;
         text-shadow: 1px 1px #333;
+        pointer-events: none;
       }
       .ui .points #value {
         font-size: 28px;
@@ -248,6 +260,7 @@
     <script src="/js/three.js"></script>
     <script src="/js/GLTFLoader.js"></script>
     <script src="/js/PointerLockControls.js"></script>
+    <script src="/js/TouchControls.js"></script>
     <script src="/js/GamepadControls.js"></script>
     <script src="/js/Tween.js"></script>
     <script src="/js/physics.js"></script>
@@ -255,6 +268,7 @@
     <script src="/js/text.js"></script>
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
+    <script src="/js/MobileUI.js"></script>
     <div class="ui">
       <div class="banner loading" style="opacity: 1"></div>
       <div class="pointer"></div>
@@ -269,6 +283,8 @@
       <div class="points"><span id="value">0</span> PTS</div>
     </div>
     <script>
+    let mobileUI = new MobileUI();
+
     Notiflix.Notify.init({
       clickToClose: false,
       showOnlyTheLastOne: true,
@@ -310,11 +326,13 @@
         testData["2"].data.score = score;
         document.querySelector(".start-banner").style.backgroundImage = "url(/images/badge_precision.gif)";
         document.querySelector(".start-banner").style.opacity = 1;
+        mobileUI.startBannerUp();
         setTimeout(() => {
           loadLevel(currentLevel + 1);
         }, 3000);
         setTimeout(() => {
           document.querySelector(".start-banner").style.opacity = 0;
+          mobileUI.startBannerDown();
         }, 4000);
         return;
       }
@@ -374,6 +392,7 @@
     let crashed = false;
     let currentGear = "drive";
     let countingDown = true;
+    let defaultFov = mobile ? 60 : 55;
     let options = { carHeadingMaxIncrement: 1, carHeadingIncrement: 0 };
     let levelEnded = false;
     controls = {
@@ -433,9 +452,12 @@
     scene.fog = new THREE.Fog(0xaaaaaa, 0,  200);
 
     const PointerControls = new PointerLockControls(camera, renderer.domElement);
+    const TouchControls = new THREE.TouchControls(camera, renderer.domElement);
     pointerSpeed = 2;
+    touchSpeed = 3;
     PointerControls.isLocked = true;
     PointerControls.pointerSpeed = pointerSpeed;
+    TouchControls.speed = touchSpeed;
 
     const centerVector = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
@@ -448,7 +470,7 @@
       countingDown = false;
       lockPointer = false;
       exitControlLock();
-      document.exitPointerLock();
+      if (document.exitPointerLock) document.exitPointerLock();
       audio.end();
       stopAnimate = true;
       if (reason === "outofbounds" || reason === "crashed") audio.sounds.crash.play();
@@ -547,6 +569,10 @@
         currentGear = direction;
         if (currentGear === "reverse") physics.env.currentGear = "reverse";
         if (currentGear === "drive") physics.env.currentGear = "drive";
+        if (currentGear === "park") {
+          park();
+          Notiflix.Notify.info("Car is now in park.");
+        }
       }
 
       if (currentGear === "reverse") {
@@ -561,7 +587,7 @@
 
     function park() {
       exitControlLock();
-      document.exitPointerLock();
+      if (document.exitPointerLock) document.exitPointerLock();
       lockPointer = false;
       countingDown = false;
 
@@ -569,6 +595,28 @@
       let score = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 1001), 1000), 0);
 
       end(score);
+    }
+
+    function driveStart() {
+      if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
+      throttle = true;
+    }
+
+    function driveStop() {
+      if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.decelerate();
+      throttle = false;
+    }
+
+    function brakeStart() {
+      keyboardBraking = true;
+      braking = true;
+      car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
+    }
+
+    function brakeStop() {
+      braking = false;
+      keyboardBraking = false;
+      car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
     }
 
     function toggleEngine() {
@@ -650,6 +698,7 @@
       presets.startTimestamp = Date.now();
       countingDown = true;
       document.querySelector(".banner").style.opacity = 0;
+      mobileUI.reset();
 
       if (currentLevel === 1) {
         testData["1"].data.centerlinerecords = [];
@@ -707,11 +756,14 @@
 
           if (intersections[0]) {
             PointerControls.pointerSpeed = pointerSpeed / 3;
+            TouchControls.speed = touchSpeed / 3;
             document.querySelector(".pointer").classList.add("active");
             if (typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) intersections[0].object.getObjectByName("PointerText").visible = true;
+            TouchControls.showUseButton();
           } else {
             document.querySelector(".pointer").classList.remove("active");
             PointerControls.pointerSpeed = pointerSpeed;
+            TouchControls.speed = touchSpeed;
           }
         }
 
@@ -776,9 +828,9 @@
           spotDistances = spotDistancesTemp;
         }
       }
-      physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
+      if (!mobile) physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
 
-      camera.fov = 55 + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
+      camera.fov = defaultFov + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
       camera.updateProjectionMatrix();
 
       if (frame % 5 === 0 && countingDown) {
@@ -807,7 +859,7 @@
     }
 
     function onWindowResize() {
-      renderer.setPixelRatio(1);
+      renderer.setPixelRatio(mobile ? 1.7 : 1);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.5, false);
@@ -843,8 +895,7 @@
         if (controlLock === "Shifter") {
           shift("up");
         } else {
-          if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
-          throttle = true;
+          driveStart();
         }
       }
       if (event.key === "ArrowDown" && !event.repeat) {
@@ -866,16 +917,13 @@
         togglePerspective();
       }
       if (event.key === "b" && !event.repeat) {
-        keyboardBraking = true;
-        braking = true;
-        car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
+        brakeStart();
       }
     });
 
     document.addEventListener("keyup", function(event) {
       if (event.key === "ArrowUp") {
-        if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.decelerate();
-        throttle = false;
+        driveStop();
       }
       if (event.key === "ArrowLeft") {
         manualSteering = false;
@@ -886,14 +934,12 @@
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }
       if (event.key === "b") {
-        braking = false;
-        keyboardBraking = false;
-        car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
+        brakeStop();
       }
     });
 
-    document.addEventListener("mousedown", function(event) {
-      if (document.pointerLockElement == null && lockPointer) {
+    function mousedown(event) {
+      if (!mobile && document.pointerLockElement == null && lockPointer) {
         document.body.requestPointerLock();
         if (perspective === 0) PointerControls.lock();
       }
@@ -903,11 +949,13 @@
         if (!controlLock) {
           audio.click();
           if (control.includes("Shifter")) {
-            if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
-            if (!engine) return Notiflix.Notify.warning("Engine must be activated in order to shift gears.");
-            pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Tab</span> to exit)");
-            controlLock = "Shifter";
-            PointerControls.isLocked = false;
+            if (!mobile) {
+              if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
+              if (!engine) return Notiflix.Notify.warning("Engine must be activated in order to shift gears.");
+              pointerText("You are now shifting gears (<span class='key'>&UpArrow;</span> <span class='key'>&DownArrow;</span> to shift, <span class='key'>Tab</span> to exit)");
+              controlLock = "Shifter";
+              PointerControls.isLocked = false;
+            }
           } else if (control.includes("Ignition")) {
             if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped to shut off the engine.");
             toggleEngine();
@@ -916,9 +964,9 @@
           }
         }
       }
-    });
+    }
 
-    document.addEventListener("mouseup", (event) => {
+    function mouseup(event) {
       if (PointerControls.isLocked && lockPointer) {
         if (perspective === 0) PointerControls.lock();
       }
@@ -926,7 +974,19 @@
         audio.sounds.horn.pause();
         audio.sounds.horn.currentTime = 0;
       }, 200);
-    });
+    }
+
+    document.addEventListener("mousedown", mousedown);
+    document.addEventListener("mouseup", mouseup);
+
+    function touchShift(element) {
+      if (physics.env.speedMS > 0.2) return Notiflix.Notify.warning("The car must be fully stopped in order to shift gears.");
+      if (!engine) return Notiflix.Notify.warning("Engine must be activated in order to shift gears.");
+      audio.click();
+      shift(element.dataset.gear);
+      document.querySelector(".shifter-box-option.selected").classList.remove("selected");
+      element.classList.add("selected");
+    }
 
     function loadVehicle() {
       new THREE.GLTFLoader().load(`/models/cars/${selectedCar}.glb`, function(gltf) {
@@ -1009,6 +1069,7 @@
       if (!started) {
         started = true;
         document.querySelector(".start-banner").style.opacity = 0;
+        mobileUI.startBannerDown();
         loadVehicle();
       }
     });
