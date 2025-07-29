@@ -829,7 +829,7 @@
           spotDistances = spotDistancesTemp;
         }
       }
-      if (!mobile) physics.env.heading = Math.max(Math.min(physics.env.heading + options.carHeadingIncrement, 35), -35);
+      if (!mobile) physics.env.heading = Math.max(Math.min(physics.env.heading + (options.carHeadingIncrement / physics.env.wheelTurnRatio), 35), -35);
 
       camera.fov = defaultFov + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
       camera.updateProjectionMatrix();
