@@ -50,6 +50,7 @@ const AudioWrapper = function(src) {
 };
 
 audio = {
+  playIdleAndDecelerate: false,
   acceleratePauseTimeout: 0,
   deceleratePauseTimeout: 0,
   idlePauseTimeout: 0,
@@ -75,7 +76,7 @@ audio = {
     audio.idlePlayTimeout = setTimeout(() => {
       audio.sounds.idle.currentTime = 0;
       audio.sounds.idle.play();
-    }, 4000);
+    }, audio.playIdleAndDecelerate ? 0 : 4000);
   },
   on: function() {
     audio.sounds.on.currentTime = 0;
@@ -113,6 +114,10 @@ audio = {
   tap: function() {
     audio.sounds.tap.currentTime = 0;
     audio.sounds.tap.play();
+  },
+  start: function() {
+    audio.sounds.idle.loop = true;
+    audio.sounds.idle.play();
   }
 };
 
@@ -129,8 +134,5 @@ audio.sounds = {
   "drumroll": AudioWrapper("/sounds/drum_roll.mp3"),
   "tap": AudioWrapper("/sounds/mobile_tap.mp3")
 };
-
-audio.sounds.idle.loop = true;
-audio.sounds.idle.play();
 
 document.addEventListener("touchstart", () => { if (audio.ctx.state === "suspended") audio.ctx.resume() }, { once: true });

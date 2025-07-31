@@ -394,7 +394,7 @@
     let currentGear = "drive";
     let countingDown = true;
     let defaultFov = mobile ? 60 : 55;
-    let options = { carHeadingMaxIncrement: 1, carHeadingIncrement: 0 };
+    let options = { carHeadingMaxIncrement: 12, carHeadingIncrement: 0 };
     let levelEnded = false;
     controls = {
       "Control_Screen": true,
@@ -1053,6 +1053,7 @@
 
         scene.add(car);
         animate();
+        audio.start();
 
         document.querySelector(".infobox-description").textContent = testData["1"].objective;
 
