@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parking Master Shop</title>
+  <style>
+    html, body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+    }
+    .card {
+      position: relative;
+      border: 3px solid #ddd;
+      border-radius: 10px;
+      width: 280px;
+      height: 280px;
+      overflow: hidden;
+      display: inline-block;
+      margin: 5px;
+      box-shadow: 0 0px 10px 1px rgba(0, 0, 0, 0.1);
+    }
+    .card:last-child {
+      margin-bottom: 100px;
+    }
+    .card-image {
+      width: 100%;
+    }
+    .card-image img {
+      position: relative;
+      width: 100%;
+      box-shadow: 0 1px 6px #ececec, 0 1px 4px #ececec;
+    }
+    .card-subtitle-info {
+      color: #999;
+    }
+    .card-info {
+      padding-left: 5px;
+    }
+    .card-title {
+      font-size: 20px;
+    }
+    .card-price {
+      text-align: right;
+      float: right;
+      padding-right: 5px;
+    }
+    .points-icon::before {
+      content: "";
+      background-image: url(/images/points.png);
+      width: 16px;
+      height: 16px;
+      margin-right: -3px;
+      background-size: 16px 16px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .points-icon.points-icon-free::before {
+      content: "";
+      filter: grayscale(1);
+    }
+    .card-container {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      flex-flow: wrap;
+      width: 1200px;
+      height: 500px;
+      left: 50%;
+      margin-left: -640px;
+      overflow-y: scroll;
+      border-bottom: 10px solid #ddd;
+      margin-top: 20px;
+    }
+    .header {
+      position: relative;
+      pointer-events: none;
+      width: 100%;
+      background: #fff;
+      height: 130px;
+      margin: 0;
+      margin-top: 10px;
+      border-bottom: 3px solid #333;
+    }
+    .header h1 {
+      font-size: 64px;
+      font-weight: 200;
+      text-align: center;
+      margin: 0;
+    }
+    .header p {
+      font-size: 30px;
+      margin-top: 5px;
+      font-weight: 200;
+      text-align: center;
+    }
+    .logo {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      width: 50px;
+      height: 50px;
+      background-image: url(/images/logo.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+    .header .points {
+      position: absolute;
+      font-size: 14px;
+      text-align: left;
+      left: 80px;
+      top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="points">Balance: <span style="font-size: 20px"><span class="points-icon"></span> 10,000</span></div>
+    <h1>PARKING MASTER</h1>
+    <p>SHOP</p>
+  </div>
+  <div class="logo"></div>
+  <div class="filters">
+    <div class="filter-button"></div>
+  </div>
+  <div class="card-container">
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">HONDA</div>
+        <div class="card-price"><span class="points-icon points-icon-free"></span> FREE</div>
+        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Ram_1500_TRX.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">RAM</div>
+        <div class="card-price"><span class="points-icon"></span> 39</div>
+        <div class="card-subtitle">1500 <span class="card-subtitle-info">TRX</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/G_Wagon_premium.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">Mercedes Benz</div>
+        <div class="card-price"><span class="points-icon"></span> 299</div>
+        <div class="card-subtitle">G Wagon</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Ferrari_SF90_Stradale_premium.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">Ferrari</div>
+        <div class="card-price"><span class="points-icon"></span> 699</div>
+        <div class="card-subtitle">SF90 <span class="card-subtitle-info">XX Stradale</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Ferrari_Roma_legendary.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">Ferrari</div>
+        <div class="card-price"><span class="points-icon"></span> 1,399</div>
+        <div class="card-subtitle">Roma</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">HONDA</div>
+        <div class="card-price"><span class="points-icon"></span> 25,000</div>
+        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">HONDA</div>
+        <div class="card-price"><span class="points-icon"></span> 25,000</div>
+        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-image">
+        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+      </div>
+      <div class="card-info">
+        <div class="card-title">HONDA</div>
+        <div class="card-price"><span class="points-icon"></span> 25,000</div>
+        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
