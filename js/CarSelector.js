@@ -16,6 +16,14 @@ function selectCar(car) {
       audio.playIdleAndDecelerate = true;
     }
   }
+
+  loadVehicle();
 }
 
-selectCar("Ferrari_Roma");
+if (user.loggedIn) {
+  user.logInCallback = function() {
+    selectCar(user.preferences.currentCar);
+  };
+} else {
+  selectCar("Honda_Civic_Sport_Touring");
+}

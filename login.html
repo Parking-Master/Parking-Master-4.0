@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Log in</title>
+    <style>
+      html, body {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      body {
+        background: linear-gradient(160deg, #eee 0%, #eee 50%, white 50%, white 100%);
+      }
+      .wrapper {
+        width: 1536px;
+        height: 731px;
+        position: fixed;
+        left: 50%;
+        margin-left: -768px;
+        transform-origin: top center;
+      }
+      .form {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        left: 50%;
+        top: 50%;
+        margin-left: -250px;
+        margin-top: -250px;
+        border-radius: 20px;
+        box-shadow: 0 11px 34px 0 rgba(120, 120, 128, 0.16);
+        border: .5px solid transparent;
+        background: linear-gradient(#fff 0 0) padding-box, linear-gradient(to top right, #bbb, #acacac) border-box;
+      }
+      ::selection {
+        color: black !important;
+        background-color: #e2e2e2 !important;
+      }
+      .logo {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        width: 50px;
+        height: 50px;
+        background-image: url(/images/logo.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+        border-radius: 100%;
+        border: 5px solid #fff;
+      }
+      .logo::after {
+        content: "©";
+        position: absolute;
+        right: -5px;
+        bottom: -5px;
+        font-size: 14px;
+      }
+      .form-header {
+        text-align: center;
+        font-size: 30px;
+        margin-top: 30px;
+      }
+      .input-container {
+        position: relative;
+        width: 300px;
+        left: 50%;
+        margin-left: -164px;
+        margin-top: 30px;
+      }
+      .input {
+        width: 100%;
+        padding: 12px;
+        border: 3px solid transparent !important;
+        border-radius: 8px;
+        background: linear-gradient(#fff 0 0) padding-box, linear-gradient(to top right, #ddd, #cfcfcf) border-box !important;
+        box-shadow: 0 3px 10px 0 rgba(120, 120, 128, 0.08);
+      }
+      .input:focus {
+        outline: 1px solid #999;
+      }
+      .input-header {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 8px;
+      }
+      .password-view {
+        position: absolute;
+        color: #cfcfcf;
+        right: -10px;
+        bottom: 14px;
+      }
+      .password-view:hover i {
+        background: #f7f7f7;
+        padding: 5px;
+        margin: -5px;
+        border-radius: 6px;
+      }
+      .submit {
+        width: 100%;
+        padding: 15px;
+        background: #ddd;
+        text-align: center;
+        border-radius: 8px;
+        margin-top: 50px;
+        transition: background .1s, transform .15s ease-out;
+        user-select: none !important;
+      }
+      ::placeholder {
+        opacity: 1;
+        color: #aaa;
+      }
+      .form .link {
+        position: relative;
+        text-align: center;
+        margin-top: 20px;
+      }
+      .form .link a {
+        color: #aaa;
+        text-decoration: none;
+        font-size: 12px;
+        padding: 6px;
+        border-radius: 6px;
+      }
+      .form .link:hover a {
+        background: #f7f7f7;
+      }
+      .form-text {
+        text-align: center;
+        font-size: 10px;
+        color: #aaa;
+        margin-top: 8px;
+      }
+      img.menu-tiremarks-image {
+        position: absolute;
+        top: 80px;
+        left: 100px;
+        rotate: -5deg;
+        pointer-events: none;
+      }
+      @media only screen and (max-width:800px) {
+        .form {
+          transform: scale(1.5);
+          transform-origin: top center;
+        }
+      }
+      @media only screen and (max-width:500px) {
+        .form {
+          transform: scale(2);
+          transform-origin: top center;
+          top: 90%;
+        }
+        img.menu-tiremarks-image {
+          top: 500px;
+          left: 0;
+        }
+      }
+      @media only screen and (max-width:400px) {
+        .input-container, a {
+          transform: scale(1.3);
+        }
+      }
+      input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 1000px rgba(65, 110, 234, 0.4) inset !important;
+        transition: background-color 5000s ease-in-out 0s !important;
+        -webkit-text-fill-color: #000 !important;
+      }
+      input:-webkit-autofill + .password-view, input:-webkit-autofill:hover + .password-view, input:-webkit-autofill:focus + .password-view, input:-webkit-autofill:active + .password-view {
+        color: #000 !important;
+      }
+      input:-webkit-autofill + .password-view:hover i, input:-webkit-autofill:hover + .password-view:hover i, input:-webkit-autofill:focus + .password-view:hover i, input:-webkit-autofill:active + .password-view:hover i {
+        background: rgba(247, 247, 247, 0.5);
+      }
+      .form-image {
+        position: relative;
+        width: 100%;
+      }
+      .submit:hover {
+        background: #bbb;
+        cursor: default;
+      }
+      .submit:active {
+        transform: scale(0.9);
+      }
+      .swal-modal {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+      }
+      .swal-title {
+        color: #333;
+      }
+      .swal-text {
+        color: #333;
+        text-align: center;
+      }
+      .swal-button {
+        color: #fff;
+        background: #333;
+        border-radius: 6px;
+        width: 100px;
+        font-size: 12px;
+        padding: 8px 1px;
+        box-shadow: none !important;
+      }
+      .swal-button:hover {
+        background: #aaa !important;
+      }
+      .swal-button:active {
+        background: #777 !important;
+      }
+      .swal-footer {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/js/sweetalert.js"></script>
+    <script src="/js/user.js"></script>
+    <div class="wrapper">
+      <img class="form-image" src="/images/form_background.png">
+      <a href="/"><div class="logo"></div></a>
+      <img class="menu-tiremarks-image" src="/images/menu1.png">
+      <div class="form">
+        <div class="form-header">Log in</div>
+        <div class="form-text">(to the world's greatest web game)</div>
+        <div class="input-container">
+          <div class="input-header">Email or Username</div>
+          <input class="input email" type="text">
+        </div>
+        <div class="input-container">
+          <div class="input-header">Password</div>
+          <input class="input password" type="password">
+          <div class="password-view" onclick="togglePassword(this)"><i class="fa fa-eye"></i></div>
+        </div>
+        <div class="input-container">
+          <div class="submit" onclick="submit()">Continue</div>
+        </div>
+        <div class="link">
+          <a href="#">I forgot my password</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      if (user.loggedIn) user.logOut();
+
+      let serverURL = "https://working-bedbug-luckily.ngrok-free.app";
+
+      function onWindowResize() {
+        let averageScale = window.innerHeight / 731;
+        let minWidth = 1536 * averageScale;
+        if (window.innerWidth < minWidth) {
+          // Scale the UI based on the width of window
+          wrapperScale = (window.innerWidth / 1536);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        } else {
+          // Scale the UI based on the height of window
+          wrapperScale = (window.innerHeight / 731);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        }
+      }
+      window.addEventListener("resize", onWindowResize);
+      onWindowResize();
+
+      function togglePassword(button) {
+        if (document.querySelector(".input.password").type == "password") {
+          document.querySelector(".input.password").type = "text";
+          button.querySelector("i").className = "fa fa-eye-slash";
+        } else {
+          document.querySelector(".input.password").type = "password";
+          button.querySelector("i").className = "fa fa-eye";
+        }
+      }
+
+      function submit() {
+        let email = document.querySelector(".input.email").value;
+        let password = document.querySelector(".input.password").value;
+
+        fetch(`${serverURL}/account/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "69420"
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password
+          })
+        }).then(async response => {
+          function error(code) {
+            if (code === 422) {
+              swal({
+                text: `Error: Your email, username or password is incorrect.`,
+                button: "Close",
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              });
+            } else {
+              swal({
+                text: `Error: An unknown error occurred. (code: ${code})`,
+                button: "Close",
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              });
+            }
+          }
+          if (response.status === 200) {
+            let loginToken = await response.text();
+            if (loginToken && loginToken.length === 16) {
+              localStorage.setItem("loginToken", loginToken);
+              if (new URLSearchParams(location.search).get("r")) {
+                location.href = `/${new URLSearchParams(location.search).get("r")}.html`;
+              } else {
+                location.href = "/";
+              }
+            } else {
+              error();
+            }
+          } else {
+            error(response.status);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

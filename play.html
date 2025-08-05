@@ -79,6 +79,7 @@
         margin-top: -18px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-align: center;
@@ -91,6 +92,7 @@
       }
       #NotiflixNotifyWrap {
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-shadow: 1px 1px #333;
@@ -110,6 +112,7 @@
         top: 10px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         color: #fff;
@@ -143,6 +146,7 @@
         bottom: 10px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-align: center;
@@ -164,6 +168,7 @@
         bottom: 10px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-align: center;
@@ -251,7 +256,7 @@
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
     <script src="/js/MobileUI.js"></script>
-    <script src="/js/CarSelector.js"></script>
+    <script src="/js/user.js"></script>
     <div class="ui">
       <div class="banner loading" style="opacity: 1"></div>
       <div class="pointer"></div>
@@ -268,8 +273,6 @@
     </div>
   <script>
     let mobileUI = new MobileUI();
-
-    if (!localStorage["points"]) localStorage.setItem("points", 0);
 
     Notiflix.Notify.init({
       clickToClose: false,
@@ -601,7 +604,7 @@
           }).then(() => {
             document.querySelector(".swal-modal").style.border = "";
 
-            localStorage.setItem("points", (localStorage["points"] - 0) + points);
+            user.set("points", (user.preferences.points || 0) + points);
 
             loadLevel(currentLevel + 1);
           });
@@ -698,7 +701,7 @@
 
       document.querySelector(".banner").classList.add("loading");
       document.querySelector(".banner").style.opacity = 1;
-      document.querySelector(".points #value").textContent = localStorage["points"];
+      document.querySelector(".points #value").textContent = user.preferences.points;
 
       stopAnimate = true;
       scene.remove(ground);
@@ -1087,15 +1090,14 @@
         audio.start();
 
         setTimeout(() => {
-          document.querySelector(".points #value").textContent = localStorage["points"];
+          document.querySelector(".points #value").textContent = user.preferences.points;
 
           presets.startTimestamp = Date.now();
           document.querySelector(".banner").style.opacity = 0;
         }, 2000);
       });
     }
-
-    loadVehicle();
   </script>
+    <script src="/js/CarSelector.js"></script>
   </body>
 </html>

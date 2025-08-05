@@ -5,9 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parking Master Shop</title>
   <style>
+    @keyframes hover {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    @keyframes stomp {
+      0% {
+        opacity: 0;
+        transform: scale(10);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
     html, body {
       font-family: Arial, Helvetica, sans-serif;
       margin: 0;
+    }
+    .wrapper {
+      width: 1536px;
+      height: 731px;
+      position: fixed;
+      left: 50%;
+      margin-left: -768px;
+      transform-origin: top center;
     }
     .card {
       position: relative;
@@ -22,6 +48,29 @@
     }
     .card:last-child {
       margin-bottom: 100px;
+    }
+    .card .card-hover {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.2);
+      transition: opacity .1s ease-in-out;
+      width: 100%;
+      height: 100%;
+      z-index: 9998;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      opacity: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .card:hover .card-hover {
+      opacity: 1;
+    }
+    .card .card-hover .button {
+      
     }
     .card-image {
       width: 100%;
@@ -44,6 +93,7 @@
       text-align: right;
       float: right;
       padding-right: 5px;
+      transition: transform 1s ease-in, opacity 1s ease-in-out;
     }
     .points-icon::before {
       content: "";
@@ -112,99 +162,415 @@
       left: 80px;
       top: 10px;
     }
+    .card .button {
+      padding: 6px 20px;
+      background: linear-gradient(to top right, #fff, #ededed);
+      border: 5px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      box-shadow: 0 0px 50px 30px rgba(0, 0, 0, 0.2);
+      transition: border .2s;
+    }
+    .card .button:hover {
+      background: #ddd;
+      border: 5px solid #999;
+      border-radius: 10px;
+      font-size: 16px;
+      box-shadow: 0 0px 50px 30px rgba(0, 0, 0, 0.2);
+    }
+    .card-legendary .button {
+      background: transparent !important;
+      border: 5px solid gold;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      color: gold;
+    }
+    .card-legendary .button:hover {
+      background: rgba(255, 215, 0, 0.2) !important;
+      border: 5px solid goldenrod;
+      outline: 2px solid yellow;
+    }
+    .banner {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      display: none;
+    }
+    .banner-header {
+      font-size: 40px;
+    }
+    .banner-text {
+      font-size: 16px;
+      padding: 26px;
+    }
+    .banner-content {
+      --angle: 0deg;
+      position: absolute;
+      width: 500px;
+      height: 300px;
+      left: 50%;
+      top: 50%;
+      margin-left: -250px;
+      margin-top: -250px;
+      border-radius: 20px;
+      box-shadow: 0 11px 34px 0 rgba(50, 50, 53, 0.16);
+      border: 10px solid transparent;
+      background: linear-gradient(#fff 0 0) padding-box, linear-gradient(var(--angle), #d9e2e9, #afb3b7) border-box;
+      text-align: center;
+      align-content: center;
+      color: #333;
+    }
+    button.login {
+      padding: 15px 25px;
+      background: #ddd;
+      text-align: center;
+      border-radius: 8px;
+      border: none;
+      margin-top: 40px;
+      font-size: 16px;
+      transition: background .1s, transform .15s ease-out;
+      user-select: none !important;
+    }
+    button.login:hover {
+      background: #bbb;
+      cursor: default;
+    }
+    button.login:active {
+      transform: scale(0.9);
+    }
+    .banner-wrapper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      margin: 0;
+      background: #fff;
+      pointer-events: none;
+      z-index: 10000;
+    }
+    .progress-track {
+      position: absolute;
+      border: 1px solid #333;
+      width: 400px;
+      height: 10px;
+      left: 50%;
+      top: 50%;
+      margin-left: -200px;
+      margin-top: -5px;
+    }
+    .progress-bar {
+      position: absolute;
+      background: #333;
+      width: 0;
+      height: 100%;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      margin: 0;
+      transition: width 1s;
+    }
+    .swal-modal {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+    }
+    .swal-title {
+      color: #333;
+    }
+    .swal-text {
+      color: #333;
+      text-align: center;
+    }
+    .swal-button {
+      color: #fff;
+      background: #333;
+      border-radius: 6px;
+      width: 100px;
+      font-size: 12px;
+      padding: 8px 1px;
+      box-shadow: none !important;
+    }
+    .swal-button:hover {
+      background: #aaa !important;
+    }
+    .swal-button:active {
+      background: #777 !important;
+    }
+    .swal-footer {
+      text-align: center;
+    }
+    .comparison {
+      text-align: center;
+    }
+    .comparison div {
+      display: inline-block;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="points">Balance: <span style="font-size: 20px"><span class="points-icon"></span> 10,000</span></div>
-    <h1>PARKING MASTER</h1>
-    <p>SHOP</p>
+  <script src="/js/user.js"></script>
+  <script src="/js/sweetalert.js"></script>
+  <div class="wrapper">
+    <div class="banner">
+      <div class="banner-content">
+        <div class="banner-header">Don't miss out.</div>
+        <div class="banner-text">Log in and get free access to over 8 specially crafted cars. Plus, when you sign up, we'll even give you bonus points!</div>
+        <button class="login" onclick="location.href = '/login.html?r=shop'">Log in</button>
+      </div>
+    </div>
+    <div class="banner-wrapper">
+      <div class="progress-track">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+    <div class="header">
+      <div class="points">Balance: <span style="font-size: 20px"><span class="points-icon"></span> <span id="balance">0</span></span></div>
+      <h1>PARKING MASTER</h1>
+      <p>SHOP</p>
+    </div>
+    <a href="/"><div class="logo"></div></a>
+    <div class="filters">
+      <div class="filter-button"></div>
+    </div>
+    <div class="card-container">
+      <div class="card" data-car="Honda_Civic_Sport_Touring" data-price="0">
+        <div class="card-image">
+          <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">HONDA</div>
+          <div class="card-price"><span class="points-icon points-icon-free"></span> FREE</div>
+          <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card" data-car="Ram_1500_TRX" data-price="39">
+        <div class="card-image">
+          <img src="/images/cars/Ram_1500_TRX.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">RAM</div>
+          <div class="card-price"><span class="points-icon"></span> 39</div>
+          <div class="card-subtitle">1500 <span class="card-subtitle-info">TRX</span></div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card" data-car="G_Wagon" data-price="299">
+        <div class="card-image">
+          <img src="/images/cars/G_Wagon_premium.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">Mercedes Benz</div>
+          <div class="card-price"><span class="points-icon"></span> 299</div>
+          <div class="card-subtitle">G Wagon</div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card" data-car="Ferrari_SF90_Stradale" data-price="699">
+        <div class="card-image">
+          <img src="/images/cars/Ferrari_SF90_Stradale_premium.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">Ferrari</div>
+          <div class="card-price"><span class="points-icon"></span> 699</div>
+          <div class="card-subtitle">SF90 <span class="card-subtitle-info">XX Stradale</span></div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card card-legendary" data-car="Ferrari_Roma" data-price="1399">
+        <div class="card-image">
+          <img src="/images/cars/Ferrari_Roma_legendary.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">Ferrari</div>
+          <div class="card-price"><span class="points-icon"></span> 1,399</div>
+          <div class="card-subtitle">Roma</div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-image">
+          <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">HONDA</div>
+          <div class="card-price"><span class="points-icon"></span> 25,000</div>
+          <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-image">
+          <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">HONDA</div>
+          <div class="card-price"><span class="points-icon"></span> 25,000</div>
+          <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-image">
+          <img src="/images/cars/Honda_Civic_Sport_Touring.png">
+        </div>
+        <div class="card-info">
+          <div class="card-title">HONDA</div>
+          <div class="card-price"><span class="points-icon"></span> 25,000</div>
+          <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
+        </div>
+        <div class="card-hover">
+          <button class="button" id="get_in_car">Get in car</button>
+          <button class="button" id="buy">Buy car</button>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="logo"></div>
-  <div class="filters">
-    <div class="filter-button"></div>
-  </div>
-  <div class="card-container">
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">HONDA</div>
-        <div class="card-price"><span class="points-icon points-icon-free"></span> FREE</div>
-        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Ram_1500_TRX.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">RAM</div>
-        <div class="card-price"><span class="points-icon"></span> 39</div>
-        <div class="card-subtitle">1500 <span class="card-subtitle-info">TRX</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/G_Wagon_premium.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">Mercedes Benz</div>
-        <div class="card-price"><span class="points-icon"></span> 299</div>
-        <div class="card-subtitle">G Wagon</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Ferrari_SF90_Stradale_premium.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">Ferrari</div>
-        <div class="card-price"><span class="points-icon"></span> 699</div>
-        <div class="card-subtitle">SF90 <span class="card-subtitle-info">XX Stradale</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Ferrari_Roma_legendary.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">Ferrari</div>
-        <div class="card-price"><span class="points-icon"></span> 1,399</div>
-        <div class="card-subtitle">Roma</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">HONDA</div>
-        <div class="card-price"><span class="points-icon"></span> 25,000</div>
-        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">HONDA</div>
-        <div class="card-price"><span class="points-icon"></span> 25,000</div>
-        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-image">
-        <img src="/images/cars/Honda_Civic_Sport_Touring.png">
-      </div>
-      <div class="card-info">
-        <div class="card-title">HONDA</div>
-        <div class="card-price"><span class="points-icon"></span> 25,000</div>
-        <div class="card-subtitle">Civic <span class="card-subtitle-info">Sport Touring</span></div>
-      </div>
-    </div>
-  </div>
+  <script>
+    function onWindowResize() {
+      let averageScale = window.innerHeight / 731;
+      let minWidth = 1536 * averageScale;
+      if (window.innerWidth < minWidth) {
+        // Scale the UI based on the width of window
+        wrapperScale = (window.innerWidth / 1536);
+        document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+        if (document.querySelector(".swal-modal")) {
+          document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+        }
+      } else {
+        // Scale the UI based on the height of window
+        wrapperScale = (window.innerHeight / 731);
+        document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+        if (document.querySelector(".swal-modal")) {
+          document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+        }
+      }
+    }
+    window.addEventListener("resize", onWindowResize);
+    onWindowResize();
+
+    document.addEventListener("DOMContentLoaded", function() {
+      setTimeout(() => document.querySelector(".progress-bar").style.width = "100%");
+      setTimeout(() => {
+        document.querySelector(".banner-wrapper").remove();
+      }, 1000);
+    });
+
+    function buyCar(car, price) {
+      if (user.preferences.points >= price) {
+        let content = document.createElement("div");
+        content.innerHTML = `
+        <div class="comparison">
+          <div>
+            Current balance: <span style="text-align: right; float: right">${user.preferences.points} XP</span><br>
+            Price of car: <span style="text-align: right; float: right">${price} XP</span><br>
+            Balance after purchase: <span style="text-align: right; float: right">${user.preferences.points - price} XP</span><br>
+          </div>
+        </div>
+        `;
+        swal({
+          text: `Do you want to purchase the ${car.replace(/_/g, " ")}?`,
+          content: content,
+          buttons: ["Cancel", "Purchase"],
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        }).then(result => {
+          if (result) {
+            swal({
+              title: "It's all yours!",
+              text: `Enjoy your new ${car.split("_")[0]}!`,
+              button: "Close",
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            }).then(() => location.reload());
+
+            user.set("points", user.preferences.points - price);
+            let cars = user.preferences.cars;
+            cars.push(car);
+            user.set("cars", cars);
+          }
+        })
+      } else {
+        swal({
+          title: "Sorry, you can't buy this yet.",
+          text: "You don't have enough points! Play some games and improve your driving skills to earn more points.",
+          button: "Close",
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        });
+      }
+    }
+
+    function getInCar(car) {
+      document.querySelector(`.card[data-car='${user.preferences.currentCar}'] .card-price`).textContent = "OWNED";
+      document.querySelector(`.card[data-car='${user.preferences.currentCar}'] .button#get_in_car`).style.display = "";
+      user.set("currentCar", car);
+      document.querySelector(`.card[data-car='${car}'] .card-price`).style.animation = "stomp 1s ease-in";
+      document.querySelector(`.card[data-car='${car}'] .card-price`).textContent = "SELECTED";
+      document.querySelector(`.card[data-car='${car}'] .button#get_in_car`).style.display = "none";
+    }
+
+    if (user.loggedIn) {
+      user.logInCallback = function() {
+        document.querySelector("#balance").textContent = user.preferences.points;
+
+        document.querySelectorAll(".card").forEach(card => {
+          if (user.preferences.cars.indexOf(card.dataset.car) > -1) {
+            card.querySelector(".button#buy").style.display = "none";
+            card.querySelector(".card-price").textContent = "OWNED";
+          } else {
+            card.querySelector(".button#get_in_car").style.display = "none";
+          }
+          if (user.preferences.currentCar == card.dataset.car) {
+            card.querySelector(".button#get_in_car").style.display = "none";
+            card.querySelector(".card-price").textContent = "SELECTED";
+          }
+
+          card.querySelector(".button#buy").addEventListener("click", function() {
+            buyCar(card.dataset.car, card.dataset.price - 0);
+          });
+          card.querySelector(".button#get_in_car").addEventListener("click", function() {
+            getInCar(card.dataset.car);
+          });
+        });
+      };
+    } else {
+      document.querySelector(".banner").style.display = "block";
+    }
+  </script>
 </body>
 </html>
