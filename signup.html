@@ -222,7 +222,7 @@
     <script src="/js/sweetalert.js"></script>
     <div class="wrapper">
       <img class="form-image" src="/images/form_background.png">
-      <a href="/"><div class="logo"></div></a>
+      <a href="/" style="color: #000 !important"><div class="logo"></div></a>
       <img class="menu-tiremarks-image" src="/images/menu1.png">
       <div class="form">
         <div class="form-header">Sign up</div>
@@ -279,13 +279,18 @@
         }
       }
 
+      let submitted = false;
       function submit() {
+        if (submitted) return;
+        submitted = true;
+
         let email = document.querySelector(".input.email").value;
         let password = document.querySelector(".input.password").value;
 
         let emailTestRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
         function error(code) {
+          submitted = false;
           if (typeof email !== "string" || email.length >= 100 || !emailTestRegex.test(email)) {
             swal({
               text: `Error: Please enter a valid email address.`,

@@ -254,11 +254,19 @@
       
       let params = new URLSearchParams(location.search);
       if (params.get("v") && params.get("email") && params.get("v").length === 32) {
-        fetch(`${serverURL}/account/verify?v=${params.get("v")}&email=${params.get("email")}`, {
+        fetch(`${serverURL}/account/verify`, {
+          method: "POST",
           headers: {
+            "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "69420"
-          }
-        }).then(response => {
+          },
+          body: JSON.stringify({
+            key: params.get("v"),
+            email: params.get("email"),
+          })
+        }).then(async response => {
+          let loginToken = await response.text();
+          localStorage.setItem("loginToken", loginToken);
           setTimeout(() => {
             if (response.status === 200) {
               location.replace("/?m=0");

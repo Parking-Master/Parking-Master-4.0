@@ -270,7 +270,7 @@
     <script src="/js/notiflix.js"></script>
     <script src="/js/sweetalert.js"></script>
     <script src="/js/MobileUI.js"></script>
-    <script src="/js/CarSelector.js"></script>
+    <script src="/js/user.js"></script>
     <div class="ui">
       <div class="banner loading" style="opacity: 1"></div>
       <div class="pointer"></div>
@@ -285,6 +285,7 @@
       <div class="points"><span id="value">0</span> PTS</div>
     </div>
     <script>
+    let test = true;
     let mobileUI = new MobileUI();
 
     Notiflix.Notify.init({
@@ -1072,9 +1073,10 @@
         started = true;
         document.querySelector(".start-banner").style.opacity = 0;
         mobileUI.startBannerDown();
-        loadVehicle();
+        start();
       }
     });
     </script>
+    <script src="/js/CarSelector.js"></script>
   </body>
 </html>

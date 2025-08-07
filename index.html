@@ -129,6 +129,7 @@
         padding: 0;
         margin: 0;
         line-height: 731px;
+        pointer-events: none;
       }
       .banner {
         position: absolute;
@@ -246,6 +247,10 @@
         height: 20px;
         padding: 10px;
         font-size: 18px;
+        transition: height .2s ease-out;
+      }
+      .account.extended {
+        height: 60px;
       }
       .account .points {
         margin-right: 10px;
@@ -254,12 +259,23 @@
         content: "";
         position: relative;
         left: 3px;
-        top: 50%;
+        top: 10px;
         width: 0;
         height: 0;
         border-left: 8px solid transparent;
         border-right: 8px solid transparent;
         border-top: 8px solid #000;
+        vertical-align: middle;
+      }
+      .account.extended .username::after {
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid #000;
+        top: -15px;
+      }
+      .account .profile-picture {
+        position: relative;
+        width: 20px;
+        line-height: 18px;
         vertical-align: middle;
       }
       .points-icon::before {
@@ -270,6 +286,16 @@
         background-size: 16px 16px;
         display: inline-block;
         vertical-align: middle;
+      }
+      .account button {
+        background: #ddd;
+        border: none;
+        border-radius: 5px;
+        color: #000;
+        padding: 3px 5px;
+      }
+      .account button:hover {
+        background: #bbb;
       }
     </style>
   </head>
@@ -329,6 +355,10 @@
       window.addEventListener("resize", onWindowResize);
       onWindowResize();
 
+      function comma(string) {
+        return string.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")
+      }
+
       function play() {
         document.querySelector(".banner").style.opacity = 1;
         setTimeout(() => {
@@ -366,15 +396,30 @@
           location.reload();
         });
         document.querySelector(".account").innerHTML = `
-        <span class="points-icon"></span><span class="points">${user.preferences.points}</span> <span class="username">${user.username}</span>
+        <span class="points-icon"></span><span class="points">${comma(user.preferences.points)}</span> <img src="${user.preferences.profilePicture}" class="profile-picture"> <span class="username">${user.username}</span>
         `;
         user.logInCallback = function() {
+          document.querySelector(".account .profile-picture").src = user.preferences.profilePicture;
           document.querySelector(".account .username").textContent = user.username;
-          document.querySelector(".account .points").textContent = user.preferences.points;
+          document.querySelector(".account .points").textContent = comma(user.preferences.points);
         };
+        document.querySelector(".account").addEventListener("click", function(event) {
+          if (this.classList.contains("extended")) {
+            this.classList.remove("extended");
+            this.querySelector(".overflow").remove();
+          } else {
+            this.classList.add("extended");
+            this.innerHTML += `
+            <div class="overflow">
+              <br>
+              <button onclick="event.preventDefault(), location.href='/profile.html?user=${user.username}'">Go to profile</button> <button onclick="event.preventDefault(), location.href='/users.html'">See all users</button>
+            </div>
+            `;
+          }
+        });
       } else {
         document.querySelector(".account").innerHTML = `
-        <span class="points-icon"></span><span class="points">${user.preferences.points}</span>
+        <span class="points-icon"></span><span class="points">${comma(user.preferences.points)}</span>
         `;
       }
     </script>

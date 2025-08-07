@@ -241,6 +241,17 @@
         background-repeat: no-repeat;
         background-color: #fff !important;
       }
+      .tip {
+        position: absolute;
+        left: 10vw;
+        bottom: 3vw;
+      }
+      .tip .header {
+        font-size: 3vh;
+      }
+      .tip .text {
+        font-size: 2vh;
+      }
     </style>
   </head>
   <body>
@@ -273,6 +284,29 @@
     </div>
   <script>
     let mobileUI = new MobileUI();
+    let tips = null;
+
+    function tip() {
+      function next() {
+        let tip = tips[Math.floor(Math.random() * tips.length)];
+        document.querySelector(".banner").innerHTML = `
+        <div class="tip">
+          <div class="header"><i class="fa fa-lightbulb-o"></i> ${tip.header}</div>
+          <div class="text">${tip.tip}</div>
+        </div>
+        `;
+      }
+
+      if (tips) {
+        next();
+      } else {
+        fetch("/tips.json").then(response => response.json()).then(result => {
+          tips = result;
+          next();
+        });
+      }
+    }
+    tip();
 
     Notiflix.Notify.init({
       clickToClose: false,
@@ -426,7 +460,7 @@
         swal({
           title: "Game over",
           text: "You exited the parking lot.",
-          buttons: ["Retry (10 PTS)", "Return to menu"],
+          buttons: ["Retry (2 PTS)", "Return to menu"],
           closeOnEnterKey: false,
           closeOnEsc: false,
           closeOnClickOutside: false
@@ -699,6 +733,7 @@
       currentLevel = level;
       document.title = "Parking Master Level " + level;
 
+      tip();
       document.querySelector(".banner").classList.add("loading");
       document.querySelector(".banner").style.opacity = 1;
       document.querySelector(".points #value").textContent = user.preferences.points;

@@ -216,6 +216,17 @@
       .swal-footer {
         text-align: center;
       }
+      .swal-content__input {
+        border: 1px solid #999 !important;
+        box-shadow: 0 3px 10px 0 rgba(120, 120, 128, 0.08);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      @media only screen and (max-width:600px) {
+        .swal-content__input {
+          border: 2px solid #999 !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -223,32 +234,113 @@
     <script src="/js/user.js"></script>
     <div class="wrapper">
       <img class="form-image" src="/images/form_background.png">
-      <a href="/"><div class="logo"></div></a>
+      <a href="/" style="color: #000 !important"><div class="logo"></div></a>
       <img class="menu-tiremarks-image" src="/images/menu1.png">
       <div class="form">
         <div class="form-header">Log in</div>
         <div class="form-text">(to the world's greatest web game)</div>
-        <div class="input-container">
-          <div class="input-header">Email or Username</div>
-          <input class="input email" type="text">
-        </div>
-        <div class="input-container">
-          <div class="input-header">Password</div>
-          <input class="input password" type="password">
-          <div class="password-view" onclick="togglePassword(this)"><i class="fa fa-eye"></i></div>
+        <div class="inputs">
+          <div class="input-container">
+            <div class="input-header">Email or Username</div>
+            <input class="input email" type="text">
+          </div>
+          <div class="input-container">
+            <div class="input-header">Password</div>
+            <input class="input password" type="password">
+            <div class="password-view" onclick="togglePassword(this)"><i class="fa fa-eye"></i></div>
+          </div>
         </div>
         <div class="input-container">
           <div class="submit" onclick="submit()">Continue</div>
         </div>
         <div class="link">
-          <a href="#">I forgot my password</a>
+          <a href="javascript:void(0)" onclick="forgotPassword()">I forgot my password</a>
         </div>
       </div>
     </div>
     <script>
-      if (user.loggedIn) user.logOut();
-
       let serverURL = "https://working-bedbug-luckily.ngrok-free.app";
+
+      if (user.loggedIn) setTimeout(() => user.logOut(), 2000);
+
+      let params = new URLSearchParams(location.search);
+      if (params.get("rp")) {
+        let key = params.get("v");
+        let email = params.get("email");
+        history.replaceState({}, document.title, "/login.html");
+        document.title = "Reset password";
+        document.querySelector(".form-header").textContent = "Reset password";
+        document.querySelector(".form-text").textContent = "";
+        document.querySelector(".link").remove();
+        document.querySelector(".form .inputs").innerHTML = `
+        <div class="input-container">
+          <div class="input-header">New password</div>
+          <input class="input password" type="password">
+          <div class="password-view" onclick="togglePassword(this)"><i class="fa fa-eye"></i></div>
+        </div>
+        <div class="input-container">
+          <div class="input-header">Re-enter password</div>
+          <input class="input password" type="password">
+          <div class="password-view" onclick="togglePassword(this)"><i class="fa fa-eye"></i></div>
+        </div>
+        `;
+
+        let submitted = false;
+        submit = function() {
+          if (submitted) return;
+          submitted = true;
+
+          let password = document.querySelectorAll(".input.password")[0].value;
+          let samePassword = document.querySelectorAll(".input.password")[1].value;
+
+          if (password !== samePassword) {
+            submitted = false;
+
+            swal({
+              text: "Error: Those passwords do not match.",
+              button: "Close",
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            });
+
+            return;
+          }
+
+          fetch(`${serverURL}/account/passwordreset/reset`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "69420"
+            },
+            body: JSON.stringify({
+              key: key,
+              email: email,
+              password: password
+            })
+          }).then(response => {
+            if (response.status === 200) {
+              swal({
+                title: "Locked and loaded.",
+                text: "Your password has been reset! Just don't forget it next time.",
+                button: "Log in",
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              }).then(() => {
+                location.replace("/login.html");
+              });
+            } else {
+              submitted = false;
+
+              swal({
+                text: "Error: There was a problem resetting your password. Make sure that link is not expired, your new password is valid, and that your account exists.",
+                button: "Close",
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              });
+            }
+          });
+        }
+      }
 
       function onWindowResize() {
         let averageScale = window.innerHeight / 731;
@@ -257,32 +349,30 @@
           // Scale the UI based on the width of window
           wrapperScale = (window.innerWidth / 1536);
           document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
-          if (document.querySelector(".swal-modal")) {
-            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
-          }
         } else {
           // Scale the UI based on the height of window
           wrapperScale = (window.innerHeight / 731);
           document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
-          if (document.querySelector(".swal-modal")) {
-            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
-          }
         }
       }
       window.addEventListener("resize", onWindowResize);
       onWindowResize();
 
       function togglePassword(button) {
-        if (document.querySelector(".input.password").type == "password") {
-          document.querySelector(".input.password").type = "text";
+        if (button.parentElement.querySelector(".input.password").type == "password") {
+          button.parentElement.querySelector(".input.password").type = "text";
           button.querySelector("i").className = "fa fa-eye-slash";
         } else {
-          document.querySelector(".input.password").type = "password";
+          button.parentElement.querySelector(".input.password").type = "password";
           button.querySelector("i").className = "fa fa-eye";
         }
       }
 
+      let submitted = false;
       function submit() {
+        if (submitted) return;
+        submitted = true;
+
         let email = document.querySelector(".input.email").value;
         let password = document.querySelector(".input.password").value;
 
@@ -298,7 +388,8 @@
           })
         }).then(async response => {
           function error(code) {
-            if (code === 422) {
+            submitted = false;
+            if (code === 400) {
               swal({
                 text: `Error: Your email, username or password is incorrect.`,
                 button: "Close",
@@ -328,6 +419,44 @@
             }
           } else {
             error(response.status);
+          }
+        });
+      }
+
+      function forgotPassword() {
+        swal({
+          text: "Enter the email address below that you signed up with:",
+          content: "input",
+          button: "Next"
+        }).then(email => {
+          let emailTestRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+          if (email && emailTestRegex.test(email)) {
+            fetch(`${serverURL}/account/passwordreset`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "69420"
+              },
+              body: JSON.stringify({
+                email: email,
+                url: `${location.protocol}//${location.host}/login.html`
+              })
+            });
+            swal({
+              text: `An email was sent to ${email}. If this is you, click the link in the email to create your new password.`,
+              button: "Close",
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            });
+          } else {
+            if (!email || !email.trim()) return;
+            swal({
+              text: `Error: Please enter a valid email address.`,
+              button: "Close",
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            });
           }
         });
       }

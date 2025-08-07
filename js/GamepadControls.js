@@ -153,7 +153,7 @@ function handleDirectionalMovement() {
   } else {
     stopped = false;
     if (TweenCache) TweenCache.stop();
-    options.carHeadingIncrement = -moveX / 1.5;
+    options.carHeadingIncrement = -moveX * 20;
   }
 }
 

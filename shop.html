@@ -483,12 +483,22 @@
     window.addEventListener("resize", onWindowResize);
     onWindowResize();
 
+    function comma(string) {
+      return string.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
       setTimeout(() => document.querySelector(".progress-bar").style.width = "100%");
       setTimeout(() => {
         document.querySelector(".banner-wrapper").remove();
       }, 1000);
     });
+
+    function resetAnimation(element) {
+      element.style.animation = "none";
+      element.offsetHeight;
+      element.style.animation = null;
+    }
 
     function buyCar(car, price) {
       if (user.preferences.points >= price) {
@@ -539,6 +549,7 @@
       document.querySelector(`.card[data-car='${user.preferences.currentCar}'] .card-price`).textContent = "OWNED";
       document.querySelector(`.card[data-car='${user.preferences.currentCar}'] .button#get_in_car`).style.display = "";
       user.set("currentCar", car);
+      resetAnimation(document.querySelector(`.card[data-car='${car}'] .card-price`));
       document.querySelector(`.card[data-car='${car}'] .card-price`).style.animation = "stomp 1s ease-in";
       document.querySelector(`.card[data-car='${car}'] .card-price`).textContent = "SELECTED";
       document.querySelector(`.card[data-car='${car}'] .button#get_in_car`).style.display = "none";
@@ -546,7 +557,7 @@
 
     if (user.loggedIn) {
       user.logInCallback = function() {
-        document.querySelector("#balance").textContent = user.preferences.points;
+        document.querySelector("#balance").textContent = comma(user.preferences.points);
 
         document.querySelectorAll(".card").forEach(card => {
           if (user.preferences.cars.indexOf(card.dataset.car) > -1) {

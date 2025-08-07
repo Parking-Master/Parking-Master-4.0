@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All players</title>
+  </head>
+  <body>
+    <div class="users-wrapper"></div>
+    <script>
+      let serverURL = "https://working-bedbug-luckily.ngrok-free.app";
+
+      fetch(`${serverURL}/users`, {
+        headers: {
+          "ngrok-skip-browser-warning": "69420"
+        }
+      }).then(response => response.json()).then(users => {
+        for (let i = 0; i < users.length; i++) {
+          let user = users[i];
+          document.querySelector(".users-wrapper").innerHTML += `
+          <div class="user">
+            <div class="profile-picture" style="background-image: url(${user.preferences.profilePicture})"></div>
+          </div>
+          `;
+        }
+      })
+    </script>
+  </body>
+</html>
