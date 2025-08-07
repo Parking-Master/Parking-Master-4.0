@@ -4,26 +4,255 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All players</title>
+    <style>
+      html, body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        overflow: hidden;
+      }
+      .wrapper {
+        width: 1536px;
+        height: 731px;
+        position: fixed;
+        left: 50%;
+        margin-left: -768px;
+        transform-origin: top center;
+      }
+      .users-wrapper {
+        position: relative;
+        left: 50%;
+        width: 1455px;
+        margin-left: -727.5px;
+        width: 100%;
+        height: 480px;
+        overflow-y: scroll;
+        max-height: 100%;
+        display: block;
+        margin-top: 10px;
+      }
+      .user {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border: 1px solid #999;
+        border-radius: 10px;
+        box-shadow: 0 11px 34px 0 rgba(120, 120, 128, 0.16);
+        display: inline-block;
+        margin: 3px;
+        text-align: center;
+        background: #fff;
+      }
+      .user .rank {
+        display: none;
+      }
+      .user:first-of-type {
+        width: 300px;
+        height: 300px;
+        padding: 0 6px;
+        float: left;
+        border: 3px solid gold;
+      }
+      .user:first-of-type .profile-picture {
+        margin-top: 30px;
+      }
+      .user:first-of-type .rank {
+        display: block;
+        font-size: 50px;
+        color: #333;
+        margin-top: 20px;
+      }
+      .user .profile-picture {
+        position: relative;
+        left: 50%;
+        width: 90px;
+        height: 90px;
+        margin-left: -45px;
+        border-radius: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin-top: 10px;
+      }
+      .user:first-of-type .profile-picture::after {
+        content: "";
+        position: relative;
+        width: 50px;
+        height: 50px;
+        background-image: url(/images/crown.png);
+        background-size: 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: inline-block;
+        transform: rotate(-20deg);
+        top: -20px;
+        left: -20px;
+      }
+      .points-icon::before {
+        content: "";
+        background-image: url(/images/points.png);
+        width: 16px;
+        height: 16px;
+        margin-right: -3px;
+        background-size: 16px 16px;
+        display: inline-block;
+        vertical-align: middle;
+        background-repeat: no-repeat;
+      }
+      .user .info {
+        font-size: 12px;
+        color: #999;
+      }
+      .user .info .points-icon::before {
+        background-size: 12px 12px;
+        margin-right: -7px;
+        margin-bottom: -3px;
+      }
+      .my-profile-wrapper {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-top: 10px solid #ddd;
+        height: 230px;
+      }
+      .my-user {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border: 1px solid #999;
+        border-radius: 10px;
+        box-shadow: 0 11px 34px 0 rgba(120, 120, 128, 0.16);
+        display: inline-block;
+        margin: 3px;
+        text-align: center;
+        background: #fff;
+        top: 50%;
+        margin-top: -75px;
+        left: 30px;
+        outline: 6px solid #7796ed;
+      }
+      .my-user .profile-picture {
+        position: relative;
+        left: 50%;
+        width: 90px;
+        height: 90px;
+        margin-left: -45px;
+        border-radius: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin-top: 5px;
+      }
+      .my-user .info {
+        font-size: 12px;
+        color: #999;
+      }
+      .my-user .info .points-icon::before {
+        background-size: 12px 12px;
+        margin-right: -7px;
+        margin-bottom: -3px;
+      }
+      .my-profile-wrapper .header {
+        font-size: 30px;
+      }
+      .user.current-user {
+        outline: 6px solid #7796ed;
+      }
+      .my-user .rank {
+        font-size: 14px;
+      }
+    </style>
   </head>
   <body>
-    <div class="users-wrapper"></div>
+    <script src="/js/user.js"></script>
+    <div class="wrapper">
+      <div class="users-wrapper"></div>
+      <div class="my-profile-wrapper">
+        <div class="my-user">
+          <div class="profile-picture"></div>
+          <div class="username"></div>
+          <div class="info"><span class="points-icon"></span> <span class="points">0</span>, <span class="cars">0</span> cars</div>
+          <div class="rank">#1</div>
+        </div>
+        <!-- <div class="header">0 cars, 10,000 points</div> -->
+        <!-- <div class="text">Ranked #1 globally</div> -->
+      </div>
+    </div>
     <script>
       let serverURL = "https://working-bedbug-luckily.ngrok-free.app";
+
+      function onWindowResize() {
+        let averageScale = window.innerHeight / 731;
+        let minWidth = 1536 * averageScale;
+        if (window.innerWidth < minWidth) {
+          // Scale the UI based on the width of window
+          wrapperScale = (window.innerWidth / 1536);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        } else {
+          // Scale the UI based on the height of window
+          wrapperScale = (window.innerHeight / 731);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        }
+      }
+      window.addEventListener("resize", onWindowResize);
+      onWindowResize();
+
+      let globalUsers;
+
+      function comma(string) {
+        return string.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")
+      }
 
       fetch(`${serverURL}/users`, {
         headers: {
           "ngrok-skip-browser-warning": "69420"
         }
       }).then(response => response.json()).then(users => {
+        users = users.sort((a, b) => a.preferences.points - b.preferences.points).reverse();
+        for (let i = 0; i < 100; i++) users.push({preferences:{points:100000,cars:["eee"]},username:"empty"})
+        globalUsers = users;
+
         for (let i = 0; i < users.length; i++) {
           let user = users[i];
+
+          let displayUsername = user.username;
+          if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
+
           document.querySelector(".users-wrapper").innerHTML += `
-          <div class="user">
+          <div class="user ${user.username === window.user.username ? "current-user" : ""}">
             <div class="profile-picture" style="background-image: url(${user.preferences.profilePicture})"></div>
+            <div class="username">${displayUsername}</div>
+            <div class="info"><span class="points-icon"></span> ${comma(user.preferences.points)}, ${user.preferences.cars.length} cars</div>
+            <div class="rank">#1</div>
           </div>
           `;
         }
-      })
+
+        user.logInCallback();
+      });
+
+      user.logInCallback = function() {
+        if (typeof globalUsers === "undefined") return;
+
+        let myRank = globalUsers.map(x => x.username).indexOf(user.username) + 1;
+        let displayUsername = user.username;
+
+        if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
+
+        document.querySelector(".my-user").querySelector(".profile-picture").style.backgroundImage = `url(${user.preferences.profilePicture})`;
+        document.querySelector(".my-user").querySelector(".username").textContent = displayUsername;
+        document.querySelector(".my-user").querySelector(".points").textContent = comma(user.preferences.points);
+        document.querySelector(".my-user").querySelector(".cars").textContent = user.preferences.cars.length;
+        document.querySelector(".my-user").querySelector(".rank").textContent = `#${myRank} global rank`;
+      };
     </script>
   </body>
 </html>
