@@ -42,6 +42,9 @@
         text-align: center;
         background: #fff;
       }
+      .user:hover .user-hover, .my-user:hover .user-hover {
+        opacity: 1;
+      }
       .user .rank {
         display: none;
       }
@@ -59,6 +62,10 @@
         display: block;
         font-size: 50px;
         color: #333;
+        margin-top: 20px;
+      }
+      .user:first-of-type .rank .extra-text {
+        font-size: 14px;
         margin-top: 20px;
       }
       .user .profile-picture {
@@ -116,6 +123,7 @@
         background: #fff;
         border-top: 10px solid #ddd;
         height: 230px;
+        background: linear-gradient(160deg, #eee 0%, #eee 50%, white 50%, white 100%);
       }
       .my-user {
         position: relative;
@@ -131,7 +139,7 @@
         top: 50%;
         margin-top: -75px;
         left: 30px;
-        outline: 6px solid #7796ed;
+        outline: 3px solid #7796ed;
       }
       .my-user .profile-picture {
         position: relative;
@@ -158,16 +166,79 @@
         font-size: 30px;
       }
       .user.current-user {
-        outline: 6px solid #7796ed;
+        outline: 3px solid #7796ed;
       }
       .my-user .rank {
         font-size: 14px;
+      }
+      .banner-wrapper {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        background: #fff;
+        pointer-events: none;
+        z-index: 10000;
+      }
+      .progress-track {
+        position: absolute;
+        border: 1px solid #333;
+        width: 400px;
+        height: 10px;
+        left: 50%;
+        top: 50%;
+        margin-left: -200px;
+        margin-top: -5px;
+      }
+      .progress-bar {
+        position: absolute;
+        background: #333;
+        width: 0;
+        height: 100%;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        transition: width 1s;
+      }
+      .my-info {
+        position: absolute;
+        left: 220px;
+      }
+      .my-info .text {
+        margin-top: 10px;
+      }
+      .user .user-hover, .my-user .user-hover {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.2);
+        transition: opacity .1s ease-in-out;
+        width: 100%;
+        height: 100%;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        opacity: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
       }
     </style>
   </head>
   <body>
     <script src="/js/user.js"></script>
     <div class="wrapper">
+      <div class="banner-wrapper">
+        <div class="progress-track">
+          <div class="progress-bar"></div>
+        </div>
+      </div>
       <div class="users-wrapper"></div>
       <div class="my-profile-wrapper">
         <div class="my-user">
@@ -175,9 +246,12 @@
           <div class="username"></div>
           <div class="info"><span class="points-icon"></span> <span class="points">0</span>, <span class="cars">0</span> cars</div>
           <div class="rank">#1</div>
+          <div class="user-hover"></div>
         </div>
-        <!-- <div class="header">0 cars, 10,000 points</div> -->
-        <!-- <div class="text">Ranked #1 globally</div> -->
+        <div class="my-info">
+          <div class="header">Your profile</div>
+          <div class="text">Ranked #<span class="rank">1</span> globally <span style="color: #888"><span class="users">50,000</span> players</span></div>
+        </div>
       </div>
     </div>
     <script>
@@ -211,6 +285,7 @@
         return string.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")
       }
 
+      setTimeout(() => document.querySelector(".progress-bar").style.width = "100%");
       fetch(`${serverURL}/users`, {
         headers: {
           "ngrok-skip-browser-warning": "69420"
@@ -218,23 +293,34 @@
       }).then(response => response.json()).then(users => {
         users = users.sort((a, b) => a.preferences.points - b.preferences.points).reverse();
         for (let i = 0; i < 100; i++) users.push({preferences:{points:100000,cars:["eee"]},username:"empty"})
+
+        document.querySelector(".my-info .users").textContent = users.length;
+
         globalUsers = users;
 
         for (let i = 0; i < users.length; i++) {
           let user = users[i];
 
           let displayUsername = user.username;
-          if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
+          if (user.username.length > 16 && users.indexOf(user) !== 0) displayUsername = user.username.slice(0, 13) + "...";
 
           document.querySelector(".users-wrapper").innerHTML += `
-          <div class="user ${user.username === window.user.username ? "current-user" : ""}">
+          <div class="user ${user.username === window.user.username ? "current-user" : ""}" onclick="location.href='/profile.html?user=${user.username}'">
             <div class="profile-picture" style="background-image: url(${user.preferences.profilePicture})"></div>
             <div class="username">${displayUsername}</div>
             <div class="info"><span class="points-icon"></span> ${comma(user.preferences.points)}, ${user.preferences.cars.length} cars</div>
-            <div class="rank">#1</div>
+            <div class="rank">
+              #1
+              <div class="extra-text">The TRUE Parking Master</div>
+            </div>
+            <div class="user-hover"></div>
           </div>
           `;
         }
+
+        setTimeout(() => {
+          document.querySelector(".banner-wrapper").remove();
+        }, 1000);
 
         user.logInCallback();
       });
@@ -247,11 +333,13 @@
 
         if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
 
-        document.querySelector(".my-user").querySelector(".profile-picture").style.backgroundImage = `url(${user.preferences.profilePicture})`;
-        document.querySelector(".my-user").querySelector(".username").textContent = displayUsername;
-        document.querySelector(".my-user").querySelector(".points").textContent = comma(user.preferences.points);
-        document.querySelector(".my-user").querySelector(".cars").textContent = user.preferences.cars.length;
-        document.querySelector(".my-user").querySelector(".rank").textContent = `#${myRank} global rank`;
+        document.querySelector(".my-user").onclick = () => location.href = `/profile.html?user=${user.username}`;
+        document.querySelector(".my-user .profile-picture").style.backgroundImage = `url(${user.preferences.profilePicture})`;
+        document.querySelector(".my-user .username").textContent = displayUsername;
+        document.querySelector(".my-user .points").textContent = comma(user.preferences.points);
+        document.querySelector(".my-user .cars").textContent = user.preferences.cars.length;
+        document.querySelector(".my-user .rank").textContent = `#${myRank} global rank`;
+        document.querySelector(".my-info .rank").textContent = myRank;
       };
     </script>
   </body>

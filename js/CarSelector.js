@@ -20,18 +20,21 @@ function selectCar(car) {
   loadVehicle();
 }
 
-let preferredCar = null;
+let preferredCar = "Honda_Civic_Sport_Touring";
+
+function selectNext() {
+  if (typeof test === "undefined") start();
+}
 
 if (user.loggedIn) {
   user.logInCallback = function() {
     preferredCar = user.preferences.currentCar;
+    selectNext();
   };
 } else {
-  preferredCar = "Honda_Civic_Sport_Touring";
+  selectNext();
 }
 
 function start() {
   selectCar(preferredCar);
 }
-
-if (typeof test === "undefined") start();
