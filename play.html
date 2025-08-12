@@ -160,6 +160,21 @@
       .ui .speed #value {
         font-size: 28px;
       }
+      .ui .settings {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        color: #333;
+        font-size: 28px;
+        padding: 5px;
+        background: #fff;
+        border-radius: 6px;
+        bottom: 10px;
+        left: 130px;
+        z-index: 9999;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+        border: .5px solid #999;
+      }
       .ui .points {
         width: 100px;
         border-radius: 0;
@@ -231,7 +246,7 @@
         background-color: #000;
         opacity: 0;
         pointer-events: none;
-        z-index: 10000;
+        z-index: 10100;
         transition: opacity 1s;
       }
       .banner.loading {
@@ -267,6 +282,60 @@
         display: none;
         z-index: 10;
       }
+      .ui .pause-menu {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        margin: 0;
+        z-index: 10000;
+        color: #fff;
+        display: none;
+      }
+      .ui .pause-menu .header {
+        font-size: 40px;
+      }
+      .ui .pause-menu .text {
+        font-size: 18px;
+      }
+      .ui .pause-menu .heading-box {
+        position: absolute;
+        left: 30px;
+        top: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 12px;
+        border-radius: 10px;
+        border: .5px solid #fff;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+      }
+      .ui .pause-menu .continue {
+        margin-top: 20px;
+      }
+      .ui .pause-menu .button {
+        position: relative;
+        margin-top: 10px;
+        background: #ddd;
+        border: none;
+        border-radius: 8px;
+        color: #333;
+        padding: 6px;
+        width: 100%;
+        text-align: left;
+        margin-left: -6px;
+      }
+      .ui .pause-menu .button .value {
+        float: right;
+        color: #999;
+      }
+      .swal-overlay {
+        z-index: 100000;
+      }
     </style>
   </head>
   <body>
@@ -296,7 +365,18 @@
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
       </div>
       <div class="speed"><span id="value">0</span> MPH</div>
+      <div class="settings" onclick="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
       <div class="points"><span id="value">0</span> PTS</div>
+      <div class="pause-menu">
+        <div class="heading-box">
+          <div class="header">Settings</div>
+          <div class="text">Don't worry, the game is paused.</div>
+          <div class="button continue" onclick="togglePause()">Resume</div>
+          <div class="button" onclick="mainMenu()">Main Menu</div>
+          <div class="button" onclick="toggleGraphicsMode(this)">Graphics Mode <span class="value">Default</span></div>
+          <div class="button renderer-quality" onclick="toggleRendererQuality(this)">Renderer Quality <span class="value">1 (low)</span></div>
+        </div>
+      </div>
     </div>
   <script>
     let mobileUI = new MobileUI();
@@ -376,6 +456,10 @@
     let frame = 0;
     let controlLock = null;
     let manualSteering = false;
+    let pixelRatio = () => (hqgraphics ? 1.6 : mobile ? 1.7 : 1);
+    let customRendererQuality = false;
+    let customPixelRatio = 1;
+    let pause = false;
     let stopAnimate = false;
     let resetCarPosition = null;
     let lockPointer = true;
@@ -388,6 +472,7 @@
     let defaultFov = mobile ? 60 : 55;
     let options = { carHeadingMaxIncrement: 12, carHeadingIncrement: 0 };
     let hqgraphics = false;
+    let defaultShellMaterial = null;
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -783,10 +868,93 @@
       countingDown = true;
       document.querySelector(".banner").style.opacity = 0;
       mobileUI.reset();
-     }
+    }
+
+    function updatePauseMenu() {
+      toggleRendererQuality(document.querySelector(".ui .pause-menu .button.renderer-quality"), 0);
+    }
+
+    let pauseStartTime = null;
+    let hqgraphicsBefore = false;
+    function togglePause() {
+      if (crashed) return;
+
+      if (pause) {
+        document.querySelector(".ui .pause-menu").style.display = "";
+
+        if (hqgraphics && !hqgraphicsBefore) {
+          swal({
+            text: "Rendering High Quality Graphics may take a few seconds. Please wait...",
+            button: false
+          });
+        }
+
+        setTimeout(() => {
+          physics.timestamp = performance.now();
+
+          pause = false;
+          animate();
+
+          let timePassed = Date.now() - pauseStartTime;
+          presets.startTimestamp += timePassed;
+
+          countingDown = true;
+
+          if (hqgraphics && !hqgraphicsBefore) swal.close(), hqgraphicsBefore = true;
+        }, 100);
+      } else {
+        countingDown = false;
+        if (document.exitPointerLock) document.exitPointerLock();
+
+        document.querySelector(".ui .pause-menu").style.display = "block";
+        updatePauseMenu();
+        pause = true;
+        pauseStartTime = Date.now();
+      }
+    }
+    
+    function toggleGraphicsMode(button) {
+      if (hqgraphics) {
+        button.querySelector(".value").textContent = "Default";
+        toggleHQGraphics();
+        hqgraphicsBefore = false;
+      } else {
+        button.querySelector(".value").textContent = "High Quality";
+        toggleHQGraphics();
+      }
+
+      updatePauseMenu();
+    }
+
+    function toggleRendererQuality(button, increment = 0.1) {
+      if (increment != 0) {
+        customRendererQuality = true;
+        customPixelRatio = (customPixelRatio + increment).toFixed(1) - 0;
+        if (customPixelRatio > 2) customPixelRatio = 1;
+      }
+
+      let amount = customPixelRatio < 1.3 ? "low" : customPixelRatio < 1.6 ? "medium" : "high";
+      button.querySelector(".value").textContent = `${customPixelRatio} (${amount})`;
+      renderer.setPixelRatio(customPixelRatio);
+      renderer.render(scene, camera);
+    }
+
+    function mainMenu() {
+      swal({
+        text: "You will be returned to the main menu.",
+        buttons: ["Continue", "Cancel"],
+        closeOnEnterKey: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false
+      }).then(result => {
+        if (!result) {
+          location.replace("/");
+        }
+      });
+    }
 
     function animate() {
-      if (stopAnimate) return;
+      if (stopAnimate || pause) return;
 
       frame++;
 
@@ -950,7 +1118,13 @@
     }
 
     function onWindowResize() {
-      renderer.setPixelRatio(hqgraphics ? 1.6 : mobile ? 1.7 : 1);
+      if (customRendererQuality) {
+        renderer.setPixelRatio(customPixelRatio);
+      } else {
+        customPixelRatio = pixelRatio();
+        renderer.setPixelRatio(pixelRatio());
+      }
+
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.5, false);
@@ -959,6 +1133,7 @@
     onWindowResize();
 
     physics.onUpdate = function(delta) {
+      if (pause) return;
       if (car) {
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
         const driveFactor= physics.env.currentGear === "drive" ? 1 : 2;
@@ -1010,6 +1185,9 @@
       if (event.key === "b" && !event.repeat) {
         brakeStart();
       }
+      if (event.key === "p" && !event.repeat) {
+        togglePause();
+      }
     });
 
     document.addEventListener("keyup", function(event) {
@@ -1030,12 +1208,12 @@
     });
 
     function mousedown(event) {
-      if (!mobile && document.pointerLockElement == null && lockPointer) {
+      if (!mobile && document.pointerLockElement == null && lockPointer && event.target.className != "settings" && !pause) {
         document.body.requestPointerLock();
         if (perspective === 0) PointerControls.lock();
       }
 
-      if (intersections[0]) {
+      if (intersections && intersections[0]) {
         const control = intersections.map(x => x.object.name);
         if (!controlLock) {
           audio.click();
@@ -1155,37 +1333,67 @@
     }
 
     function toggleHQGraphics() {
-      hqgraphics = true;
-      onWindowResize();
+      if (hqgraphics) {
+        hqgraphics = false;
+        onWindowResize();
 
-      directionalLight.color.set(0xf9d6b3);
-      directionalLight.intensity = 2;
-      hemisphereLight.color.set(0xbfd7ff);
-      hemisphereLight.groundColor.set(0x222020);
-      hemisphereLight.intensity = 0.8;
+        directionalLight.color.set(0xffffff);
+        directionalLight.intensity = 0.5;
+        hemisphereLight.color.set(0xffffff);
+        hemisphereLight.groundColor.set(0x2b2c2d);
+        hemisphereLight.intensity = 0.5;
 
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = 4;
+        renderer.toneMappingExposure = 1;
+        renderer.outputColorSpace = undefined;
 
-      document.querySelector(".ui .vignette").style.display = "block";
+        document.querySelector(".ui .vignette").style.display = "none";
 
-      new THREE.TextureLoader().load("/images/high_quality_graphics/sky.png", function(texture) {
-        scene.fog = null;
+        scene.fog = new THREE.Fog(0xaaaaaa, 0,  200);
+        scene.remove(sky);
 
-        sky = new THREE.Mesh(new THREE.SphereGeometry(500, 60, 40), new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide }));
-        scene.add(sky);
-
-        let pmremGenerator = new THREE.PMREMGenerator(renderer);
-        let envMap = pmremGenerator.fromEquirectangular(texture).texture;
         let shell = car.getObjectByName("Exterior_Shell");
-        shell.material.envMap = envMap;
-        shell.material.envMapIntensity = 1.2;
-        shell.material.metalness = 0.85;
-        shell.material.roughness = 0.10;
-        shell.material.clearcoat = 1.0;
-        shell.material.clearcoatRoughness = 0.03;
-      });
+        shell.material.envMap = defaultShellMaterial.envMap;
+        shell.material.envMapIntensity = defaultShellMaterial.envMapIntensity;
+        shell.material.metalness = defaultShellMaterial.metalness;
+        shell.material.roughness = defaultShellMaterial.roughness;
+        shell.material.clearcoat = defaultShellMaterial.clearcoat;
+        shell.material.clearcoatRoughness = defaultShellMaterial.clearcoatRoughness;
+      } else {
+        hqgraphics = true;
+        customRendererQuality = false;
+        onWindowResize();
+
+        directionalLight.color.set(0xf9d6b3);
+        directionalLight.intensity = 2;
+        hemisphereLight.color.set(0xbfd7ff);
+        hemisphereLight.groundColor.set(0x222020);
+        hemisphereLight.intensity = 0.8;
+
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+        document.querySelector(".ui .vignette").style.display = "block";
+
+        new THREE.TextureLoader().load("/images/high_quality_graphics/sky.png", function(texture) {
+          scene.fog = null;
+
+          sky = new THREE.Mesh(new THREE.SphereGeometry(500, 60, 40), new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide }));
+          scene.add(sky);
+
+          let pmremGenerator = new THREE.PMREMGenerator(renderer);
+          let envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          let shell = car.getObjectByName("Exterior_Shell");
+          defaultShellMaterial = shell.material.clone();
+          shell.material.envMap = envMap;
+          shell.material.envMapIntensity = 1.2;
+          shell.material.metalness = 0.85;
+          shell.material.roughness = 0.10;
+          shell.material.clearcoat = 1.0;
+          shell.material.clearcoatRoughness = 0.03;
+        });
+      }
     }
   </script>
     <script src="/js/CarSelector.js"></script>
