@@ -590,6 +590,30 @@
       }, reason === "danger" ? 0 : 3000);
     }
 
+    function setLightBloom(id) {
+      if (car.getObjectByName("Light_Bloom")) {
+        if (id === 0) {
+          if (currentGear === "reverse") {
+            car.getObjectByName("Light_Bloom").material.color.set(0xffffff);
+          } else {
+            car.getObjectByName("Light_Bloom").material.opacity = 0;
+          }
+        } else if (id === 1) {
+          car.getObjectByName("Light_Bloom").material.opacity = 0.4;
+          car.getObjectByName("Light_Bloom").material.color.set(0xff0000);
+          car.getObjectByName("Light_Bloom").material.depthTest = false;
+          car.getObjectByName("Light_Bloom").material.side = THREE.BackSide;
+        } else if (id === 2) {
+          car.getObjectByName("Light_Bloom").material.opacity = 0.4;
+          car.getObjectByName("Light_Bloom").material.color.set(0xffffff);
+          car.getObjectByName("Light_Bloom").material.depthTest = false;
+          car.getObjectByName("Light_Bloom").material.side = THREE.BackSide;
+        } else if (id === 3) {
+          car.getObjectByName("Light_Bloom").material.opacity = 0;
+        }
+      }
+    }
+
     function togglePerspective(newPerspective = null) {
       if (newPerspective == null) newPerspective = perspective + 1;
       if (newPerspective > 2) newPerspective = 0;
@@ -615,6 +639,11 @@
         PointerControls.isLocked = true;
         document.querySelector(".pointer").style.display = "";
         if (engine) car.getObjectByName("Control_Screen").visible = true;
+      }
+
+      if (mobile) {
+        document.querySelector(".mobile-ui .shifter-box").style.display = "";
+        document.querySelector(".mobile-ui .use").style.display = "";
       }
     }
 
@@ -665,9 +694,17 @@
         car.getObjectByName("Control_Screen").material.map = reverseRenderTarget.texture;
         car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
         car.getObjectByName("Reverse_Lights").material.opacity = 1;
+
+        if (hqgraphics) {
+          setLightBloom(2);
+        }
       } else {
         car.getObjectByName("Control_Screen").material.map = controlScreenMap;
         car.getObjectByName("Reverse_Lights").material.opacity = 0;
+
+        if (hqgraphics) {
+          setLightBloom(0);
+        }
       }
     }
 
@@ -780,12 +817,20 @@
       keyboardBraking = true;
       braking = true;
       car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
+
+      if (hqgraphics) {
+        setLightBloom(1);
+      }
     }
 
     function brakeStop() {
       braking = false;
       keyboardBraking = false;
       car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
+
+      if (hqgraphics) {
+        setLightBloom(0);
+      }
     }
 
     function toggleEngine() {
@@ -1359,6 +1404,8 @@
         shell.material.roughness = defaultShellMaterial.roughness;
         shell.material.clearcoat = defaultShellMaterial.clearcoat;
         shell.material.clearcoatRoughness = defaultShellMaterial.clearcoatRoughness;
+
+        setLightBloom(3);
       } else {
         hqgraphics = true;
         customRendererQuality = false;

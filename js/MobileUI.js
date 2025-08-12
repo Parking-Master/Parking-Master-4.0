@@ -58,6 +58,9 @@ function MobileUI() {
       }
     }
     @media only screen and (max-width:800px) {
+      .mobile-ui .context-menu {
+        left: 340px;
+      }
       .infobox {
         position: absolute;
         width: 320px;
@@ -73,6 +76,11 @@ function MobileUI() {
       .ui .speed {
         transform: scale(0.8);
         transform-origin: bottom left;
+      }
+      .ui .settings {
+        transform: scale(0.8);
+        transform-origin: bottom left;
+        left: 110px;
       }
       .ui .points {
         transform: scale(0.8);
@@ -110,6 +118,19 @@ function MobileUI() {
         100% {
           transform: scale(0.7);
         }
+      }
+    }
+    @media only screen and (max-width:350px) {
+      .ui .pause-menu .heading-box {
+        transform: scale(0.8);
+        transform-origin: top left;
+      }
+    }
+    @media only screen and (max-height:320px) {
+      .ui .pause-menu .heading-box {
+        top: 10px;
+        transform: scale(0.8);
+        transform-origin: top left;
       }
     }
     .mobile-ui {
