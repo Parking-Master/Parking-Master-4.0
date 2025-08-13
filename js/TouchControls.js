@@ -36,6 +36,11 @@ THREE.TouchControls = function(camera, element) {
   });
   element.addEventListener("touchstart", (event) => {
     event.preventDefault();
+
+    if (mobile) {
+      useMobileUI = true;
+      document.querySelector(".mobile-ui").style.display = "block";
+    }
   });
   element.addEventListener("touchend", (event) => {
     event.preventDefault();

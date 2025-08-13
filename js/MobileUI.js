@@ -9,8 +9,6 @@ function MobileUI() {
 
   this.reset = function() {
     if (mobile) {
-      startAngle = 0;
-      startRotation = 0;
       currentRotation = 0;
       document.querySelector(".mobile-ui .steering-wheel").style.transform = "";
       document.querySelector(".mobile-ui .use").style.display = "";
@@ -246,9 +244,6 @@ function MobileUI() {
     }
   </style>
   `;
-
-  let startAngle = 0;
-  let startRotation = 0;
   let currentRotation = 0;
 
   if (mobile) {

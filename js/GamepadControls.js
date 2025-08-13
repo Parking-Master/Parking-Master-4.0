@@ -9,6 +9,7 @@ GamepadControls = {
     "switchview": "y",
     "click": "a",
     "escape": "b",
+    "pause": "start",
   },
   accelerateTimestamp: Date.now()
 };
@@ -94,6 +95,7 @@ function poll() {
   }
 }
 
+let d = false;
 function handleLookMovement() {
   if (perspective != 0) return;
 
@@ -117,9 +119,16 @@ function handleLookMovement() {
   if (!(Math.abs(lookX) > 0.1) && !(Math.abs(lookY) > 0.1)) {
     lookSpeed = initialLookSpeed;
     looking = false;
+
+    d = false;
   } else {
     if (lookSpeed < temporaryLookSensitivity / 10) lookSpeed += lookAcceleration;
     looking = true;
+
+    if (!d) {
+      d = true;
+      disableMobileUI();
+    }
   }
 
   camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
@@ -131,7 +140,7 @@ function handleDirectionalMovement() {
   const moveX = gamepad.axes[0];
   const moveY = gamepad.axes[1];
 
-  if (Math.abs(moveY) > 0.5 && controlLock === "Shifter") {
+  if (Math.abs(moveY) > 0.1 && controlLock === "Shifter") {
     if (!shifted) {
       shifted = true;
       if (moveY < 0) {
@@ -220,10 +229,14 @@ buttonData = {};
 
 buttonBindings = {
   click: function() {
-    document.dispatchEvent(new MouseEvent("mousedown"));
+    if (swal.getState().isOpen) {
+      swal.close();
+    } else {
+      mousedown();
+    }
   },
   stop_click: function() {
-    document.dispatchEvent(new MouseEvent("mouseup"));
+    mouseup();
   },
   escape: function() {
     if (!buttonRepeats["b"]) {
@@ -248,11 +261,19 @@ buttonBindings = {
     physics.env.brakePower = physics.env.maxBrakePower * value;
     braking = true;
     car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
+
+    if (hqgraphics) {
+      setLightBloom(1);
+    }
   },
   stop_brake: function() {
     physics.env.brakePower = 0;
     braking = false;
     car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
+
+    if (hqgraphics) {
+      setLightBloom(0);
+    }
   },
   accelerate: function(value) {
     if (!buttonRepeats["rt"]) {
@@ -275,6 +296,15 @@ buttonBindings = {
       overrideEngineReset = false;
       physics.env.enginePower = 0;
     }
+  },
+  pause: function() {
+    if (!buttonRepeats["start"]) {
+      buttonRepeats["start"] = true;
+      togglePause();
+    }
+  },
+  stop_pause: function() {
+    buttonRepeats["start"] = false;
   }
 };
 
@@ -290,6 +320,8 @@ GamepadControls.buttonDownEvent = function(key, value) {
     let binding = Object.keys(GamepadControls.gamepadBindings)[allBindings[i]];
     buttonBindings[binding](value);
   }
+
+  disableMobileUI();
 };
 
 GamepadControls.buttonUpEvent = function(key) {
@@ -299,3 +331,11 @@ GamepadControls.buttonUpEvent = function(key) {
     buttonBindings["stop_" + binding]();
   }
 };
+
+function disableMobileUI() {
+  if (mobile) {
+    useMobileUI = false;
+    manualSteering = true;
+    document.querySelector(".mobile-ui").style.display = "none";
+  }
+}
