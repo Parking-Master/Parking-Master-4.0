@@ -380,6 +380,9 @@
       function signup() {
         location.href = "/signup.html";
       }
+      function settings() {
+        location.href = "/profile.html";
+      }
 
       document.addEventListener("DOMContentLoaded", function() {
         setTimeout(() => document.querySelector(".progress-bar").style.width = "100%");
@@ -412,7 +415,7 @@
             this.innerHTML += `
             <div class="overflow">
               <br>
-              <button onclick="event.preventDefault(), location.href='/profile.html?user=${user.username}'">Go to profile</button> <button onclick="event.preventDefault(), location.href='/users.html'">See all users</button>
+              <button onclick="event.preventDefault(), location.href='/profile.html'">Go to profile</button> <button onclick="event.preventDefault(), location.href='/users.html'">See all users</button>
             </div>
             `;
           }

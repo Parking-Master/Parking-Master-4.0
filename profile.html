@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+      @keyframes stomp {
+        0% {
+          opacity: 0;
+          transform: scale(10);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      html, body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        overflow: hidden;
+      }
+      .wrapper {
+        width: 1536px;
+        height: 731px;
+        position: fixed;
+        left: 50%;
+        margin-left: -768px;
+        transform-origin: top center;
+      }
+      .toolbar {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        border-bottom: 6px solid #ddd;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        background: linear-gradient(160deg, #eee 0%, #eee 50%, transparent 50%, transparent 100%);
+      }
+      .toolbar::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: url(/images/form_background.png);
+        background-size: 80%;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: inline-block;
+      }
+      .user {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border: 1px solid #999;
+        border-radius: 10px;
+        box-shadow: 0 11px 34px 0 rgba(120, 120, 128, 0.16);
+        display: inline-block;
+        margin: 3px;
+        text-align: center;
+        background: #fff;
+        top: 50%;
+        margin-top: -75px;
+        left: 30px;
+      }
+      .user .profile-picture {
+        position: relative;
+        left: 50%;
+        width: 90px;
+        height: 90px;
+        margin-left: -45px;
+        border-radius: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin-top: 5px;
+      }
+      .user .info {
+        font-size: 12px;
+        color: #999;
+      }
+      .points-icon::before {
+        content: "";
+        background-image: url(/images/points.png);
+        width: 16px;
+        height: 16px;
+        margin-right: -3px;
+        background-size: 16px 16px;
+        display: inline-block;
+        vertical-align: middle;
+        background-repeat: no-repeat;
+        background-size: 12px 12px;
+        margin-right: -7px;
+        margin-bottom: -3px;
+      }
+      .toolbar-username {
+        position: absolute;
+        left: 220px;
+        top: 0;
+        line-height: 280px;
+        vertical-align: middle;
+        font-size: 24px;
+        text-align: left;
+        pointer-events: none;
+      }
+      .toolbar-email {
+        position: absolute;
+        left: 220px;
+        top: 0;
+        line-height: 320px;
+        vertical-align: middle;
+        font-size: 14px;
+        text-align: left;
+        color: #888;
+        pointer-events: none;
+      }
+      .toolbar-buttons {
+        position: absolute;
+        left: 220px;
+        top: 0;
+        line-height: 370px;
+        vertical-align: middle;
+      }
+      .toolbar-status {
+        position: absolute;
+        left: 220px;
+        top: 0;
+        line-height: 420px;
+        vertical-align: middle;
+        font-size: 16px;
+        text-align: left;
+        pointer-events: none;
+      }
+      .logo {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        width: 50px;
+        height: 50px;
+        background-image: url(/images/logo.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+        border-radius: 100%;
+        z-index: 9999;
+      }
+      .swal-modal {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+      }
+      .swal-title {
+        color: #333;
+      }
+      .swal-text {
+        color: #333;
+        text-align: center;
+      }
+      .swal-button {
+        color: #fff;
+        background: #333;
+        border-radius: 6px;
+        width: 100px;
+        font-size: 12px;
+        padding: 8px 1px;
+        box-shadow: none !important;
+      }
+      .swal-button:hover {
+        background: #aaa !important;
+      }
+      .swal-button:active {
+        background: #777 !important;
+      }
+      .swal-footer {
+        text-align: center;
+      }
+      .toolbar-buttons .button {
+        font-size: 14px;
+        padding: 2px 6px;
+        background: #fff;
+        border: .5px solid #999;
+        border-radius: 6px;
+        color: #000;
+        box-shadow: 0 3px 6px 0 rgba(120, 120, 128, 0.18);
+      }
+      .stats {
+        position: relative;
+        width: 1200px;
+        height: 401px;
+        left: 50%;
+        margin-left: -600px;
+        margin-top: -16px;
+        box-shadow: 0 11px 30px 0 rgba(120, 120, 128, 0.3);
+        border-top-right-radius: 20px;
+        border-top-left-radius: 20px;
+        margin-top: 30px;
+      }
+      .stats li {
+        font-size: 26px;
+        color: #888;
+        list-style-type: square;
+        list-style-position: inside;
+        margin-top: 10px;
+      }
+      .stats ul {
+        padding-top: 20px;
+      }
+      .stats li span {
+        color: #000;
+        font-size: 36px;
+      }
+      .stats .image {
+        position: absolute;
+        width: 60%;
+        right: 0;
+        top: 26px;
+        right: 18px;
+        border-radius: 18px;
+      }
+      .stats li #pm-status {
+        position: relative;
+        width: 26px;
+        height: 26px;
+        background-image: url(/images/status_none.png);
+        background-size: 100%;
+        background-position: center;
+        display: inline-block;
+        line-height: 26px;
+        vertical-align: middle;
+        margin-top: -4px;
+      }
+      .banner {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        display: none;
+      }
+      .banner-header {
+        font-size: 40px;
+      }
+      .banner-text {
+        font-size: 16px;
+        padding: 26px;
+      }
+      .banner-content {
+        --angle: 0deg;
+        position: absolute;
+        width: 500px;
+        height: 300px;
+        left: 50%;
+        top: 50%;
+        margin-left: -250px;
+        margin-top: -250px;
+        border-radius: 20px;
+        box-shadow: 0 11px 34px 0 rgba(50, 50, 53, 0.16);
+        border: 10px solid transparent;
+        background: linear-gradient(#fff 0 0) padding-box, linear-gradient(var(--angle), #d9e2e9, #afb3b7) border-box;
+        text-align: center;
+        align-content: center;
+        color: #333;
+      }
+      button.login {
+        padding: 15px 25px;
+        background: #ddd;
+        text-align: center;
+        border-radius: 8px;
+        border: none;
+        margin-top: 40px;
+        font-size: 16px;
+        transition: background .1s, transform .15s ease-out;
+        user-select: none !important;
+      }
+      button.login:hover {
+        background: #bbb;
+        cursor: default;
+      }
+      button.login:active {
+        transform: scale(0.9);
+      }
+      .banner-wrapper {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        background: #fff;
+        pointer-events: none;
+        z-index: 10000;
+      }
+      .toolbar-buttons .button:hover {
+        background: #ddd;
+      }
+      .toolbar-buttons .button:active {
+        background: #bbb;
+      }
+      .swal-content__input {
+        border: 1px solid #999 !important;
+        box-shadow: 0 3px 10px 0 rgba(120, 120, 128, 0.08);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      @media only screen and (max-width:600px) {
+        .swal-content__input {
+          border: 2px solid #999 !important;
+        }
+      }
+      .swal-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 100%;
+        border: 3px solid #7796ed;
+        overflow: hidden;
+      }
+      .upload, .reset {
+        font-size: 18px;
+      }
+      .upload, .reset {
+        padding: 10px 0;
+        background: #ddd;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        transition: background .1s, transform .15s ease-out;
+        user-select: none !important;
+        width: 100px;
+        text-align: center;
+        margin: 5px;
+        display: inline-block;
+      }
+      .upload:hover, .reset:hover {
+        background: #bbb;
+        cursor: default;
+      }
+      .upload:active, .reset:active {
+        transform: scale(0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/js/user.js"></script>
+    <script src="/js/sweetalert.js"></script>
+    <div class="wrapper">
+      <div class="banner">
+        <div class="banner-content">
+          <div class="banner-header">Don't miss out.</div>
+          <div class="banner-text">When you log in, your profile will show up here.</div>
+          <button class="login" onclick="location.href = '/login.html?r=profile'">Log in</button>
+        </div>
+      </div>
+      <a href="/" style="color: #000 !important"><div class="logo"></div></a>
+      <div class="toolbar">
+        <div class="user">
+          <div class="profile-picture" style="background-image: url(https://cdn.jsdelivr.net/gh/Parking-Master/Parking-Master@latest/img/profile-picture.png)"></div>
+          <div class="username">Your username</div>
+          <div class="info"><span class="points-icon"></span> <span class="points">0</span>, <span class="cars">0</span> cars</div>
+        </div>
+      </div>
+      <div class="toolbar-username">Your username</div>
+      <div class="toolbar-email">Your email</div>
+      <div class="toolbar-buttons">
+        <button class="button" onclick="editUsername()">Edit username</button>
+        <button class="button" onclick="changePicture()">Change picture</button>
+      </div>
+      <div class="toolbar-status"><i class="fa fa-info-circle"></i> <span class="value">Player is not a Parking Master</span></div>
+      
+      <div class="stats">
+        <img src="/images/menu.png" class="image">
+        <ul>
+          <li><span id="value1">0</span> Games Played</li>
+          <li><span id="value2">0</span> Total Points</li>
+          <li><span id="value3">0</span> Cars Owned</li>
+          <li><span id="value4">0</span> Global Rank</li>
+          <li><span id="pm-status"></span> Parking Master</li>
+        </ul>
+      </div>
+    </div>
+    <script>
+      let serverURL = "https://working-bedbug-luckily.ngrok-free.app";
+
+      function onWindowResize() {
+        let averageScale = window.innerHeight / 731;
+        let minWidth = 1536 * averageScale;
+        if (window.innerWidth < minWidth) {
+          // Scale the UI based on the width of window
+          wrapperScale = (window.innerWidth / 1536);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        } else {
+          // Scale the UI based on the height of window
+          wrapperScale = (window.innerHeight / 731);
+          document.querySelector(".wrapper").style.transform = `scale(${wrapperScale})`;
+          if (document.querySelector(".swal-modal")) {
+            document.querySelector(".swal-modal").style.scale = wrapperScale * 1.5;
+          }
+        }
+      }
+      window.addEventListener("resize", onWindowResize);
+      onWindowResize();
+
+      let globalUsers = null;
+
+      function comma(string) {
+        return string.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")
+      }
+      function waitUntil(condition) {
+        return new Promise(function(r) {
+          let i = setInterval(() => {
+            if (condition()) return clearInterval(i), r();
+          }, 500);
+        });
+      }
+
+      let username = new URLSearchParams(location.search).get("user");
+      if (!username) {
+        if (user.loggedIn) {
+          username = user.username;
+          next();
+        } else {
+          document.querySelector(".banner").style.display = "block";
+        }
+      } else {
+        next();
+      }
+
+      function next() {
+        fetch(`${serverURL}/users`, {
+          headers: {
+            "ngrok-skip-browser-warning": "69420"
+          }
+        }).then(response => response.json()).then(users => {
+          users = users.sort((a, b) => a.preferences.points - b.preferences.points).reverse();
+          globalUsers = users;
+        });
+
+        if (username === user.username) {
+          document.title = "My profile";
+          user.logInCallback = () => {
+            waitUntil(() => globalUsers).then(() => loadUser(user));
+          };
+        } else {
+          waitUntil(() => globalUsers).then(() => {
+            let user = globalUsers.filter(user => user.username == username)[0];
+            loadUser(user);
+          });
+        }
+
+        function loadUser(user) {
+          let displayUsername = user.username;
+          let rank = globalUsers.map(user => user.username).indexOf(user.username) + 1;
+
+          if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
+
+          document.querySelector(".user .profile-picture").style.backgroundImage = `url(${user.preferences.profilePicture})`;
+          document.querySelector(".user .username").textContent = displayUsername;
+          document.querySelector(".user .points").textContent = comma(user.preferences.points);
+          document.querySelector(".user .cars").textContent = user.preferences.cars.length;
+
+          document.querySelector(".stats #value1").textContent = user.preferences.gamesPlayed;
+          document.querySelector(".stats #value2").textContent = comma(user.preferences.points);
+          document.querySelector(".stats #value3").textContent = user.preferences.cars.length;
+          document.querySelector(".stats #value4").textContent = rank;
+          if (user.preferences.parkingMaster) {
+            document.querySelector(".toolbar-status .value").textContent = "Certified Parking Master";
+            document.querySelector(".stats #pm-status").style.backgroundImage = "url(/images/status_success.png)";
+          }
+
+          document.querySelector(".toolbar-username").textContent = user.username;
+          if (user.email) {
+            document.querySelector(".toolbar-email").textContent = user.email;
+          } else {
+            document.querySelector(".toolbar-buttons").remove();
+            document.querySelector(".toolbar-email").remove();
+            document.querySelector(".toolbar-status").style.lineHeight = "350px";
+          }
+        }
+      }
+
+      function editUsername() {
+        swal({
+          text: "Enter your new username:",
+          content: "input",
+          buttons: ["Cancel", "Save"],
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        }).then(username => {
+          if (!username) return;
+          if (username.length >= 3 && username.length < 30) {
+            if (/[a-zA-Z0-9_-]/.test(username)) {
+              user.set("root:username", username);
+
+              let displayUsername = username;
+              if (username.length > 16) displayUsername = username.slice(0, 13) + "...";
+
+              resetAnimation(document.querySelector(".toolbar-username"));
+              resetAnimation(document.querySelector(".username"));
+              document.querySelector(".toolbar-username").style.animation = "stomp 1s ease-in";
+              document.querySelector(".toolbar-username").textContent = username;
+              document.querySelector(".username").textContent = displayUsername;
+            } else {
+              swal({
+                text: "Only letters, numbers, dashes, and underscores are allowed.",
+                buttons: "Close",
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              });
+            }
+          } else {
+            swal({
+              text: "Username must be between 3 and 30 characters long.",
+              buttons: "Close",
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            });
+          }
+        });
+      }
+
+      function changePicture() {
+        let uploaded = null;
+        let content = document.createElement("div");
+        content.innerHTML = `
+        <label for="upload" class="upload">Upload</label>
+        <input type="file" id="upload" accept=".jpg,.jpeg,.png" style="display: none">
+        <button class="reset">Reset</button>
+        `;
+
+        swal({
+          icon: user.preferences.profilePicture,
+          text: "Change profile picture",
+          content: content,
+          buttons: ["Close", "Save"],
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        }).then(response => {
+          if (response && uploaded) {
+            user.set("profilePicture", uploaded);
+            document.querySelector(".profile-picture").style.backgroundImage = `url(${uploaded})`;
+          }
+        });
+        document.querySelector(".swal-button.swal-button--confirm").disabled = "disabled";
+
+        document.querySelector("input#upload").addEventListener("change", function() {
+          document.querySelector(".swal-button.swal-button--confirm").disabled = "";
+          const file = this.files[0];
+          const reader = new FileReader();
+          reader.addEventListener("load", function() {
+            if (reader.result.length >= 100000) {
+              swal({
+                text: "Profile picture must be smaller than 100 KB.",
+                buttons: "Close",
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              }).then(() => changePicture());
+            } else {
+              uploaded = reader.result;
+              document.querySelector(".swal-icon img").src = reader.result;
+            }
+          }, false);
+          if (file) {
+            reader.readAsDataURL(file);
+          }
+        });
+
+        document.querySelector(".reset").addEventListener("click", function() {
+          document.querySelector(".swal-button.swal-button--confirm").disabled = "";
+          uploaded = "https://cdn.jsdelivr.net/gh/Parking-Master/Parking-Master@latest/img/profile-picture.png";
+          document.querySelector(".swal-icon img").src = uploaded;
+        });
+      }
+
+      function resetAnimation(element) {
+        element.style.animation = "none";
+        element.offsetHeight;
+        element.style.animation = null;
+      }
+    </script>
+  </body>
+</html>

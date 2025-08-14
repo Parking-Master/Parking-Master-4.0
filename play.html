@@ -1331,8 +1331,10 @@
 
         car.traverse(child => {
           if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
+            if (child.name != "Light_Bloom") {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
             if (child.material) child.material.vertexColors = false;
 
             if (child.geometry) {
