@@ -41,6 +41,7 @@
         margin: 3px;
         text-align: center;
         background: #fff;
+        overflow: hidden;
       }
       .user:hover .user-hover, .my-user:hover .user-hover {
         opacity: 1;
@@ -229,6 +230,13 @@
         align-items: center;
         text-align: center;
       }
+      a {
+        color: #416dea !important;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -292,9 +300,7 @@
         }
       }).then(response => response.json()).then(users => {
         users = users.sort((a, b) => a.preferences.points - b.preferences.points).reverse();
-        for (let i = 0; i < 100; i++) users.push({preferences:{points:100000,cars:["eee"]},username:"empty"})
-
-        document.querySelector(".my-info .users").textContent = users.length;
+        for (let i = 0; i < 29; i++) users.push({preferences:{points:0,cars:["eee"]},username:"empty"})
 
         globalUsers = users;
 
@@ -322,25 +328,33 @@
           document.querySelector(".banner-wrapper").remove();
         }, 1000);
 
-        user.logInCallback();
+        if (user.loggedIn) user.logInCallback();
       });
 
-      user.logInCallback = function() {
-        if (typeof globalUsers === "undefined") return;
+      if (user.loggedIn) {
+        user.logInCallback = function() {
+          if (typeof globalUsers === "undefined") return;
 
-        let myRank = globalUsers.map(x => x.username).indexOf(user.username) + 1;
-        let displayUsername = user.username;
+          let myRank = globalUsers.map(x => x.username).indexOf(user.username) + 1;
+          let displayUsername = user.username;
 
-        if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
+          if (user.username.length > 16) displayUsername = user.username.slice(0, 13) + "...";
 
-        document.querySelector(".my-user").onclick = () => location.href = `/profile.html?user=${user.username}`;
-        document.querySelector(".my-user .profile-picture").style.backgroundImage = `url(${user.preferences.profilePicture})`;
-        document.querySelector(".my-user .username").textContent = displayUsername;
-        document.querySelector(".my-user .points").textContent = comma(user.preferences.points);
-        document.querySelector(".my-user .cars").textContent = user.preferences.cars.length;
-        document.querySelector(".my-user .rank").textContent = `#${myRank} global rank`;
-        document.querySelector(".my-info .rank").textContent = myRank;
-      };
+          document.querySelector(".my-user").onclick = () => location.href = `/profile.html?user=${user.username}`;
+          document.querySelector(".my-user .profile-picture").style.backgroundImage = `url(${user.preferences.profilePicture})`;
+          document.querySelector(".my-user .username").textContent = displayUsername;
+          document.querySelector(".my-user .points").textContent = comma(user.preferences.points);
+          document.querySelector(".my-user .cars").textContent = user.preferences.cars.length;
+          document.querySelector(".my-user .rank").textContent = `#${myRank} global rank`;
+          document.querySelector(".my-info .rank").textContent = myRank;
+          document.querySelector(".my-info .users").textContent = globalUsers.length;
+        };
+      } else {
+        document.querySelector(".my-user .profile-picture").style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/Parking-Master/Parking-Master@latest/img/profile-picture.png)`;
+        document.querySelector(".my-info .rank").parentElement.innerHTML = `You are not logged in. <a href="/login.html?r=users">Log in</a>`;
+        document.querySelector(".my-user .username").textContent = "------";
+        document.querySelector(".my-user .rank").textContent = "";
+      }
     </script>
   </body>
 </html>

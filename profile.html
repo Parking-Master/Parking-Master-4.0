@@ -327,9 +327,6 @@
         overflow: hidden;
       }
       .upload, .reset {
-        font-size: 18px;
-      }
-      .upload, .reset {
         padding: 10px 0;
         background: #ddd;
         border-radius: 8px;
@@ -341,6 +338,7 @@
         text-align: center;
         margin: 5px;
         display: inline-block;
+        color: #000 !important;
       }
       .upload:hover, .reset:hover {
         background: #bbb;
@@ -530,6 +528,7 @@
             });
           }
         });
+        document.querySelector(".swal-content__input").value = user.username;
       }
 
       function changePicture() {

@@ -792,6 +792,8 @@
             user.set("points", (user.preferences.points || 0) + points);
 
             loadLevel(currentLevel + 1);
+
+            if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
           });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
           if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
