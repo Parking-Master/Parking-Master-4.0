@@ -558,7 +558,7 @@
       setTimeout(() => {
         document.querySelector(".banner").classList.remove("loading");
         document.querySelector(".banner").style.opacity = 1;
-      }, 1500);
+      }, reason === "danger" ? 0 : 1500);
 
       setTimeout(() => {
         swal({
