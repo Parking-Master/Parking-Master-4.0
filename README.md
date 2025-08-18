@@ -17,6 +17,7 @@ Parking Master 4.0 will officially be released on August 31st! Here's what we've
 - Finished our beautiful website, main menu, and UI design
 - Yes, we now have real life physics and high-quality audio for all cars!
 - Added the pause menu, with settings, in-game
+- Added the full Mobile UI for all touch and mobile devices
 
 And here's what we still need to add/work on before the game is finished:
 - Multiplayer mode
