@@ -3,6 +3,7 @@ const AudioWrapper = function(src) {
   const wrapper = {
     buffer: null,
     source: null,
+    sources: [],
     loop: false,
     startTime: 0,
     offset: 0,
@@ -21,6 +22,7 @@ const AudioWrapper = function(src) {
       source.start(0, wrapper.offset);
       wrapper.startTime = ctx.currentTime - wrapper.offset;
       wrapper.source = source;
+      wrapper.sources.push(source);
       wrapper.playing = true;
       source.onended = () => {
         if (!source.loop) wrapper.playing = false;
@@ -34,6 +36,8 @@ const AudioWrapper = function(src) {
         wrapper.source.disconnect();
         wrapper.source = null;
       }
+      wrapper.sources.forEach(x => x.disconnect());
+      wrapper.sources = [];
     },
     get currentTime() {
       return wrapper.playing ? ctx.currentTime - wrapper.startTime : wrapper.offset;

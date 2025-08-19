@@ -65,17 +65,17 @@
         margin-left: -40px;
         margin-top: 20px;
       }
-      .button:hover {
+      .button:hover, .button.hover {
         transform: scale(1.05);
         background: #ccc;
       }
-      .button:active {
+      .button:active, .button.active {
         background: #999;
       }
-      .button:hover::after {
+      .button:hover::after, .button.hover::after {
         background: #ccc;
       }
-      .button:active::after {
+      .button:active::after, .button.active::after {
         background: #999;
       }
       .button span {
@@ -90,7 +90,7 @@
         display: none;
         width: 200px;
       }
-      .button:hover span {
+      .button:hover span, .button.hover span {
         display: block;
       }
       .button-wrapper {
@@ -162,18 +162,19 @@
       .overflow-menu-item span {
         opacity: 0;
         transition: opacity 0.2s;
+        pointer-events: none;
       }
-      .overflow-menu-item:hover {
+      .overflow-menu-item:hover, .overflow-menu-item.hover {
         height: 20px;
         padding: 3px 0;
         border: 2px solid #000;
         margin-left: -1px;
         margin-top: -1px;
       }
-      .overflow-menu-item:active {
+      .overflow-menu-item:active, .overflow-menu-item.active {
         background: #888;
       }
-      .overflow-menu-item:hover span {
+      .overflow-menu-item:hover span, .overflow-menu-item.hover span {
         opacity: 1;
       }
       .banner-wrapper {
@@ -294,8 +295,21 @@
         color: #000;
         padding: 3px 5px;
       }
-      .account button:hover {
+      .account button:hover, .account button.hover {
         background: #bbb;
+      }
+      .gamepad-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        background: #000;
+        width: 10px;
+        height: 10px;
+        margin-left: -5px;
+        margin-top: -5px;
+        border-radius: 100%;
+        transition: left .1s, top .1s;
+        display: none;
       }
     </style>
   </head>
@@ -332,6 +346,8 @@
       <img class="menu-tiremarks-image" src="/images/menu1.png">
       <div class="banner"></div>
     </div>
+    <div class="gamepad-cursor"></div>
+    <script src="/js/MenuGamepadControls.js"></script>
     <script>
       function onWindowResize() {
         let averageScale = window.innerHeight / 731;
