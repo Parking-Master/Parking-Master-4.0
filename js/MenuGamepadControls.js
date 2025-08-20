@@ -15,10 +15,82 @@ document.head.innerHTML += `
   z-index: 9999999999;
   box-shadow: 0 0 20px 3px #fff;
 }
+.gamepad-keyboard {
+  position: fixed;
+  background: #f7f7f7;
+  border: .5px solid #000;
+  border-radius: 10px;
+  padding: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999999999;
+  top: 30px;
+  display: none;
+}
+.gamepad-keyboard-key {
+  position: relative;
+  padding: 3px;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  background: #fff;
+  text-align: center;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px 0 rgba(120, 120, 128, 0.1);
+  display: inline-block;
+  margin: 2px 0;
+  line-height: 20px;
+}
+.gamepad-keyboard-key#enter {
+  font-size: 18px;
+}
+.gamepad-keyboard-key#space {
+  width: 50px;
+}
+.gamepad-keyboard-key.selected {
+  background: #ddd;
+}
 </style>
 `;
 document.body.innerHTML += `
 <div class="gamepad-cursor"></div>
+<div class="gamepad-keyboard">
+  <div class="gamepad-keyboard-row">
+    <div class="gamepad-keyboard-key">q</div>
+    <div class="gamepad-keyboard-key">w</div>
+    <div class="gamepad-keyboard-key">e</div>
+    <div class="gamepad-keyboard-key">r</div>
+    <div class="gamepad-keyboard-key">t</div>
+    <div class="gamepad-keyboard-key">y</div>
+    <div class="gamepad-keyboard-key">u</div>
+    <div class="gamepad-keyboard-key">i</div>
+    <div class="gamepad-keyboard-key">o</div>
+    <div class="gamepad-keyboard-key">p</div>
+  </div>
+  <div class="gamepad-keyboard-row">
+    <div class="gamepad-keyboard-key">a</div>
+    <div class="gamepad-keyboard-key">s</div>
+    <div class="gamepad-keyboard-key">d</div>
+    <div class="gamepad-keyboard-key">f</div>
+    <div class="gamepad-keyboard-key">g</div>
+    <div class="gamepad-keyboard-key">h</div>
+    <div class="gamepad-keyboard-key">j</div>
+    <div class="gamepad-keyboard-key">k</div>
+    <div class="gamepad-keyboard-key">l</div>
+    <div class="gamepad-keyboard-key" id="enter">↵</div>
+  </div>
+  <div class="gamepad-keyboard-row">
+    <div class="gamepad-keyboard-key">z</div>
+    <div class="gamepad-keyboard-key">x</div>
+    <div class="gamepad-keyboard-key">c</div>
+    <div class="gamepad-keyboard-key" id="space">&nbsp;</div>
+    <div class="gamepad-keyboard-key">v</div>
+    <div class="gamepad-keyboard-key">b</div>
+    <div class="gamepad-keyboard-key">n</div>
+    <div class="gamepad-keyboard-key">m</div>
+    <div class="gamepad-keyboard-key" id="caps-lock" data-value="1">&uparrow;</div>
+  </div>
+</div>
 `;
 
 GamepadControls = {
@@ -29,7 +101,9 @@ GamepadControls = {
   speed: 1,
   hoveringElements: [],
   hoveringElement: null,
-  buttonEvent: () => {}
+  buttonEvent: () => {},
+  keyboardLock: false,
+  currentKey: [0, 0]
 };
 
 function triggerAllHoverEvents(element) {
@@ -72,6 +146,7 @@ function triggerAllClickEvents(element) {
       clientY: GamepadControls.cursorY
     });
     element.dispatchEvent(event);
+    element.focus();
   });
 }
 
@@ -108,6 +183,7 @@ window.addEventListener('gamepadconnected', (e) => {
   GamepadControls.isConnected = true;
   gamepad = e.gamepad;
   initButtonStates();
+  poll();
 
   if (typeof swal !== "undefined") {
     let oldSwal = swal;
@@ -148,6 +224,7 @@ function poll() {
     handleLookMovement();
     handleDirectionalMovement();
     handleButtonEvents();
+    handleKeyboard();
   }
 }
 
@@ -168,9 +245,96 @@ function handleLookMovement() {
   }
 }
 
+let moved = false;
+let spam = false;
+let spamTimeout = 0;
+let timestamp = Date.now();
+
 function handleDirectionalMovement() {
   const axisX = gamepad.axes[0];
   const axisY = gamepad.axes[1];
+
+  if (GamepadControls.keyboardLock) {
+    if (Math.abs(axisY) > 0.2 || Math.abs(axisX) > 0.2) {
+      if (moved && !spam) return;
+      if (!spam) spamTimeout = setTimeout(() => spam = true, 500);
+      moved = true;
+      if (spam) {
+        if (Date.now() - timestamp < 100) return;
+        timestamp = Date.now();
+      }
+
+      let rowLengths = [9, 9, 8];
+
+      function move(direction) {
+        if (direction == "right") {
+          GamepadControls.currentKey[1]++;
+          if (GamepadControls.currentKey[1] > 9) {
+            GamepadControls.currentKey[1] = 0;
+            GamepadControls.currentKey[0]++;
+            if (GamepadControls.currentKey[0] > 2) {
+              GamepadControls.currentKey[0] = 0;
+            }
+          }
+        }
+        if (direction == "left") {
+          GamepadControls.currentKey[1]--;
+          if (GamepadControls.currentKey[1] < 0) {
+            GamepadControls.currentKey[0]--;
+
+            if (GamepadControls.currentKey[0] < 0) {
+              GamepadControls.currentKey[0] = 2;
+            }
+
+            GamepadControls.currentKey[1] = rowLengths[GamepadControls.currentKey[0]];
+          }
+        }
+        if (direction == "down") {
+          GamepadControls.currentKey[0]++;
+          if (GamepadControls.currentKey[0] > 2) {
+            GamepadControls.currentKey[0] = 0;
+          }
+
+          if (GamepadControls.currentKey[0] == 2 && GamepadControls.currentKey[1] > 3) {
+            GamepadControls.currentKey[1]--;
+          }
+        }
+        if (direction == "up") {
+          GamepadControls.currentKey[0]--;
+          if (GamepadControls.currentKey[0] < 0) {
+            GamepadControls.currentKey[0] = 2;
+          }
+
+          if (GamepadControls.currentKey[0] == 1 && GamepadControls.currentKey[1] > 3) {
+            GamepadControls.currentKey[1]++;
+          }
+        }
+
+        let key = document.querySelectorAll(".gamepad-keyboard-row")[GamepadControls.currentKey[0]].querySelectorAll(".gamepad-keyboard-key")[GamepadControls.currentKey[1]];
+
+        if (key) {
+          if (document.querySelector(".gamepad-keyboard-key.selected")) document.querySelectorAll(".gamepad-keyboard-key.selected").forEach(x => x.classList.remove("selected"));
+          key.classList.add("selected");
+        }
+      }
+
+      if (axisX > 0.2) {
+        move("right");
+      } else if (axisX < -0.2) {
+        move("left");
+      } else if (axisY > 0.2) {
+        move("down");
+      } else if (axisY < -0.2) {
+        move("up");
+      }
+    } else {
+      clearTimeout(spamTimeout);
+      moved = false;
+      spam = false;
+    }
+
+    return;
+  }
 
   if (Math.abs(axisY) < 0.1 && Math.abs(axisX) < 0.1) {
     acceleration = 0;
@@ -281,7 +445,29 @@ buttonData = {
 // Jump
 function aButtonPressed() {
   if (!buttonRepeats["a"]) {
-    if (GamepadControls.hoveringElement) {
+    if (GamepadControls.keyboardLock) {
+      let key = null;
+
+      let keyElement = document.querySelector(".gamepad-keyboard-key.selected");
+      key = keyElement.textContent;
+
+      if (keyElement.id) {
+        if (keyElement.id == "space") {
+          key = " ";
+        } else if (keyElement.id == "caps-lock") {
+          if (keyElement.dataset.value == "0") {
+            keyElement.dataset.value = "1";
+            document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toLowerCase());
+          } else {
+            keyElement.dataset.value = "0";
+            document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toUpperCase());
+          }
+          return;
+        }
+      }
+
+      document.activeElement.value += key;
+    } else if (GamepadControls.hoveringElement) {
       GamepadControls.hoveringElement.classList.add("active");
       triggerAllClickEvents(GamepadControls.hoveringElement);
       buttonRepeats["a"] = true;
@@ -297,6 +483,7 @@ function aButtonReleased() {
 // Melee
 function bButtonPressed() {
   if (!buttonRepeats["b"]) {
+    if (GamepadControls.keyboardLock) document.activeElement.blur();
     if (document.querySelector(".swal-button") && /Cancel|Close/g.test(document.querySelector(".swal-button").textContent)) {
       triggerAllClickEvents(document.querySelector(".swal-button"));
       buttonRepeats["b"] = true;
@@ -308,11 +495,19 @@ function bButtonReleased() {
 }
 
 // Sprint
-function xButtonPressed() {}
+function xButtonPressed() {
+  if (GamepadControls.keyboardLock) {
+    document.activeElement.value = document.activeElement.value.slice(0, document.activeElement.value.length - 1);
+  }
+}
 function xButtonReleased() {}
 
 // Switch weapon
-function yButtonPressed() {}
+function yButtonPressed() {
+  if (GamepadControls.keyboardLock) {
+    document.activeElement.value += " ";
+  }
+}
 function yButtonReleased() {}
 
 function lbButtonPressed() {}
@@ -338,7 +533,18 @@ function startButtonPressed() { console.log("Start/Menu button pressed - Pause g
 function startButtonReleased() { console.log("Start/Menu button released - Resume game"); }
 
 // Crouch
-function lsButtonPressed() { console.log("Left Stick button pressed - Sprint"); }
+function lsButtonPressed() {
+  if (GamepadControls.keyboardLock) {
+    let keyElement = document.querySelector("#caps-lock");
+    if (keyElement.dataset.value == "0") {
+      keyElement.dataset.value = "1";
+      document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toLowerCase());
+    } else {
+      keyElement.dataset.value = "0";
+      document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toUpperCase());
+    }
+  }
+}
 function lsButtonReleased() { console.log("Left Stick button released - Stop sprinting"); }
 
 // Zoom
@@ -354,4 +560,16 @@ function dpadLeftReleased() {}
 function dpadRightPressed() {}
 function dpadRightReleased() {}
 
-poll();
+function handleKeyboard() {
+  if (document.activeElement.tagName == "INPUT") {
+    if (!GamepadControls.keyboardLock) {
+      document.querySelector(".gamepad-keyboard").style.display = "block";
+      document.querySelector(".gamepad-keyboard-key").classList.add("selected");
+    }
+
+    GamepadControls.keyboardLock = true;
+  } else {
+    document.querySelector(".gamepad-keyboard").style.display = "";
+    GamepadControls.keyboardLock = false;
+  }
+}
