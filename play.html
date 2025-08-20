@@ -1333,7 +1333,7 @@
 
         car.traverse(child => {
           if (child.isMesh) {
-            if (child.name != "Light_Bloom") {
+            if (!child.name.includes("Light_Bloom")) {
               child.castShadow = true;
               child.receiveShadow = true;
             }

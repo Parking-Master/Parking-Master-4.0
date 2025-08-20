@@ -1,9 +1,33 @@
+document.head.innerHTML += `
+<style>
+.gamepad-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #000;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  margin-top: -5px;
+  border-radius: 100%;
+  transition: left .1s, top .1s;
+  display: none;
+  z-index: 9999999999;
+  box-shadow: 0 0 20px 3px #fff;
+}
+</style>
+`;
+document.body.innerHTML += `
+<div class="gamepad-cursor"></div>
+`;
+
 GamepadControls = {
   isConnected: false,
   cursor: document.querySelector(".gamepad-cursor"),
   cursorX: 0,
   cursorY: 0,
   speed: 1,
+  hoveringElements: [],
   hoveringElement: null,
   buttonEvent: () => {}
 };
@@ -75,7 +99,7 @@ function keyStop(code) {
 }
 
 let pointerSpeed = 3;
-let scrollSpeed = 5;
+let scrollSpeed = 8;
 let gamepad;
 let previousButtonStates = {};
 
@@ -139,8 +163,8 @@ function handleLookMovement() {
     return;
   }
 
-  if (document.querySelector(".swal-content") && document.querySelector(".swal-content").contains(GamepadControls.hoveringElement)) {
-    document.querySelector(".swal-content").scrollTop += scrollY * scrollSpeed;
+  if (GamepadControls.hoveringElement) {
+    GamepadControls.hoveringElements.forEach(x => x.scrollTop += scrollY * scrollSpeed);
   }
 }
 
@@ -153,7 +177,7 @@ function handleDirectionalMovement() {
     return;
   }
 
-  acceleration += 0.03;
+  acceleration += 0.015;
   if (acceleration > 1) acceleration = 1;
 
   cursorX += axisX * pointerSpeed * wrapperScale * acceleration * 10;
@@ -168,21 +192,21 @@ function handleDirectionalMovement() {
   GamepadControls.cursor.style.visibility = "visible";
   GamepadControls.cursor.style.left = `${cursorX}px`;
   GamepadControls.cursor.style.top = `${cursorY}px`;
-  
-  // Mimic real cursor events
-  let hoveringElement = document.elementsFromPoint(cursorX, cursorY).filter(element => element !== GamepadControls.cursor)[0];
-  document.querySelectorAll("*").forEach(hoveringElement => {
+
+  let hoveringElements = document.elementsFromPoint(cursorX, cursorY).filter(element => element !== GamepadControls.cursor);
+  let hoveringElement = hoveringElements[0];
+
+  document.querySelectorAll(".hover").forEach(hoveringElement => {
     hoveringElement.classList.remove("hover");
     cancelAllHoverEvents(hoveringElement);
   });
+
   if (hoveringElement) {
-    hoveringElement.classList.add("hover");
-    triggerAllHoverEvents(hoveringElement);
+    hoveringElements.forEach(x => (x.classList.add("hover"), triggerAllHoverEvents(x)));
   }
 
+  GamepadControls.hoveringElements = hoveringElements;
   GamepadControls.hoveringElement = hoveringElement;
-
-  // if (buttonRepeats["a"]) document.dispatchEvent(new MouseEvent("mousemove", { view: window, bubbles: true, cancelable: true, clientX: cursorX, clientY: cursorY }));
 }
 
 function handleButtonEvents() {

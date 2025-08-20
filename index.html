@@ -298,23 +298,11 @@
       .account button:hover, .account button.hover {
         background: #bbb;
       }
-      .gamepad-cursor {
-        position: fixed;
-        top: 0;
-        left: 0;
-        background: #000;
-        width: 10px;
-        height: 10px;
-        margin-left: -5px;
-        margin-top: -5px;
-        border-radius: 100%;
-        transition: left .1s, top .1s;
-        display: none;
-      }
     </style>
   </head>
   <body>
     <script src="/js/user.js"></script>
+    <script src="/js/MenuGamepadControls.js"></script>
     <audio id="menu-audio" src="https://cdn.jsdelivr.net/gh/Parking-Master/Parking-Master@latest/index/menu-audio.mp3" autoplay="" loop=""></audio>
     <div class="wrapper">
       <div class="logo"></div>
@@ -346,8 +334,6 @@
       <img class="menu-tiremarks-image" src="/images/menu1.png">
       <div class="banner"></div>
     </div>
-    <div class="gamepad-cursor"></div>
-    <script src="/js/MenuGamepadControls.js"></script>
     <script>
       function onWindowResize() {
         let averageScale = window.innerHeight / 731;
