@@ -7,6 +7,13 @@ function MobileUI() {
     mobile = false;
   }
 
+  this.updateWheel = function(heading) {
+    if (!mobile || mobileSteering) return;
+
+    let wheel = document.querySelector(".mobile-ui .steering-wheel");
+    if (wheel) wheel.style.transform = `rotate(${-heading * (120 / 35)}deg)`;
+  };
+
   this.reset = function() {
     if (mobile) {
       currentRotation = 0;
@@ -294,6 +301,7 @@ function MobileUI() {
     }
 
     wheel.addEventListener("touchstart", function(event) {
+      mobileSteering = true;
       for (const touch of event.changedTouches) {
         if (wheel.contains(touch.target)) {
           event.preventDefault();
@@ -325,6 +333,14 @@ function MobileUI() {
           lastAngle = curAngle;
         }
       }
+    });
+
+    wheel.addEventListener("touchend", function(event) {
+      mobileSteering = false;
+    });
+
+    wheel.addEventListener("touchcancel", function(event) {
+      mobileSteering = false;
     });
 
     document.querySelector(".mobile-ui").style.display = "block";

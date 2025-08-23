@@ -1,5 +1,8 @@
 const AudioWrapper = function(src) {
   const ctx = audio.ctx;
+  const gain = ctx.createGain();
+  gain.gain.value = 1;
+  gain.connect(ctx.destination);
   const wrapper = {
     buffer: null,
     source: null,
@@ -18,7 +21,7 @@ const AudioWrapper = function(src) {
       const source = ctx.createBufferSource();
       source.buffer = wrapper.buffer;
       source.loop = wrapper.loop;
-      source.connect(ctx.destination);
+      source.connect(gain);
       source.start(0, wrapper.offset);
       wrapper.startTime = ctx.currentTime - wrapper.offset;
       wrapper.source = source;
@@ -48,7 +51,8 @@ const AudioWrapper = function(src) {
         wrapper.pause();
         wrapper.play();
       }
-    }
+    },
+    gain: gain
   };
   return wrapper;
 };
@@ -64,8 +68,10 @@ audio = {
     clearTimeout(audio.acceleratePauseTimeout);
     clearTimeout(audio.idlePlayTimeout);
     audio.deceleratePauseTimeout = setTimeout(() => audio.sounds.decelerate.pause(), 100);
-    audio.sounds.accelerate.currentTime = physics.env.speedMPH / 10;
-    audio.sounds.accelerate.play();
+    audio.sounds.accelerate_interior.currentTime = physics.env.speedMPH / 10;
+    audio.sounds.accelerate_exterior.currentTime = physics.env.speedMPH / 10;
+    audio.sounds.accelerate_interior.play();
+    audio.sounds.accelerate_exterior.play();
     audio.idlePauseTimeout = setTimeout(() => {
       audio.sounds.idle.pause();
       audio.sounds.idle.currentTime = 0;
@@ -74,9 +80,15 @@ audio = {
   decelerate: function() {
     clearTimeout(audio.deceleratePauseTimeout);
     clearTimeout(audio.idlePauseTimeout);
-    audio.acceleratePauseTimeout = setTimeout(() => audio.sounds.accelerate.pause(), 500);
-    audio.sounds.decelerate.currentTime = Math.max(5 - audio.sounds.accelerate.currentTime, 0);
-    audio.sounds.decelerate.play();
+    audio.acceleratePauseTimeout = setTimeout(() => {
+      audio.sounds.accelerate_interior.pause();
+      audio.sounds.accelerate_exterior.pause();
+    }, 500);
+    let t = Math.max(5 - audio.sounds.accelerate.currentTime, 0);
+    audio.sounds.decelerate_interior.currentTime = t;
+    audio.sounds.decelerate_exterior.currentTime = t;
+    audio.sounds.decelerate_interior.play();
+    audio.sounds.decelerate_exterior.play();
     audio.idlePlayTimeout = setTimeout(() => {
       audio.sounds.idle.currentTime = 0;
       audio.sounds.idle.play();
@@ -122,12 +134,34 @@ audio = {
   start: function() {
     audio.sounds.idle.loop = true;
     audio.sounds.idle.play();
+    audio.update();
+  },
+  update: function() {
+    if (perspective == 0) {
+      audio.sounds.accelerate_interior.gain.gain.value = 1;
+      audio.sounds.decelerate_interior.gain.gain.value = 1;
+      audio.sounds.accelerate_exterior.gain.gain.value = 0;
+      audio.sounds.decelerate_exterior.gain.gain.value = 0;
+      audio.sounds.accelerate = audio.sounds.accelerate_interior;
+      audio.sounds.decelerate = audio.sounds.decelerate_interior;
+    } else {
+      audio.sounds.accelerate_interior.gain.gain.value = 0;
+      audio.sounds.decelerate_interior.gain.gain.value = 0;
+      audio.sounds.accelerate_exterior.gain.gain.value = 1;
+      audio.sounds.decelerate_exterior.gain.gain.value = 1;
+      audio.sounds.accelerate = audio.sounds.accelerate_exterior;
+      audio.sounds.decelerate = audio.sounds.decelerate_exterior;
+    }
   }
 };
 
 audio.sounds = {
-  "accelerate": AudioWrapper("/sounds/engine_accelerate.mp3"),
-  "decelerate": AudioWrapper("/sounds/engine_decelerate.mp3"),
+  "accelerate": null,
+  "decelerate": null,
+  "accelerate_exterior": AudioWrapper("/sounds/engine_accelerate.mp3"),
+  "decelerate_exterior": AudioWrapper("/sounds/engine_decelerate.mp3"),
+  "accelerate_interior": AudioWrapper("/sounds/engine_accelerate_interior.mp3"),
+  "decelerate_interior": AudioWrapper("/sounds/engine_decelerate_interior.mp3"),
   "idle": AudioWrapper("/sounds/engine_idle.mp3"),
   "warning": AudioWrapper("/sounds/car_warning.mp3"),
   "crash": AudioWrapper("/sounds/crash.mp3"),
@@ -139,4 +173,6 @@ audio.sounds = {
   "tap": AudioWrapper("/sounds/mobile_tap.mp3")
 };
 
-document.addEventListener("touchstart", () => { if (audio.ctx.state === "suspended") audio.ctx.resume() }, { once: true });
+document.addEventListener("touchstart", () => {
+  if (audio.ctx.state === "suspended") audio.ctx.resume();
+}, { once: true });

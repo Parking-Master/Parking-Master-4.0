@@ -392,16 +392,17 @@
           document.querySelector(".banner-wrapper").remove();
         }, 1000);
       });
-      
+
       if (user.loggedIn) {
         login = () => {};
         document.querySelector(".overflow-menu-item#login span").textContent = "LOG OUT";
-        document.querySelector(".overflow-menu-item#login span").addEventListener("click", function() {
+        document.querySelector(".overflow-menu-item#login").addEventListener("click", function(event) {
+          event.preventDefault();
           user.logOut();
           location.reload();
         });
         document.querySelector(".account").innerHTML = `
-        <span class="points-icon"></span><span class="points">${comma(user.preferences.points)}</span> <img src="${user.preferences.profilePicture}" class="profile-picture"> <span class="username">${user.username}</span>
+        <span class="points-icon"></span><span class="points">${comma(user.preferences.points)}</span> <img src="" class="profile-picture"> <span class="username">${user.username}</span>
         `;
         user.logInCallback = function() {
           document.querySelector(".account .profile-picture").src = user.preferences.profilePicture;

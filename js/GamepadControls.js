@@ -97,6 +97,7 @@ function poll() {
 
 let d = false;
 function handleLookMovement() {
+  if (pause) return;
   if (perspective != 0) return;
 
   const lookX = gamepad.axes[2];
@@ -136,9 +137,41 @@ function handleLookMovement() {
 
 let stopped = false;
 let looking = false;
+let menuButton = 0;
+let maxButtons = 3;
+let repeatedButton = false;
 function handleDirectionalMovement() {
   const moveX = gamepad.axes[0];
   const moveY = gamepad.axes[1];
+
+  if (pause) {
+    function move(direction) {
+      if (repeatedButton) return;
+      repeatedButton = true;
+
+      if (direction == "down") {
+        menuButton++;
+        if (menuButton > maxButtons) menuButton = maxButtons;
+      }
+      if (direction == "up") {
+        menuButton--;
+        if (menuButton < 0) menuButton = 0;
+      }
+
+      document.querySelectorAll(".pause-menu .button").forEach(x => x.classList.remove("selected"));
+      document.querySelectorAll(".pause-menu .button")[menuButton].classList.add("selected");
+    }
+
+    if (moveY > 0.2) {
+      move("down");
+    } else if (moveY < -0.2) {
+      move("up");
+    } else {
+      repeatedButton = false;
+    }
+
+    return;
+  }
 
   if (Math.abs(moveY) > 0.1 && controlLock === "Shifter") {
     if (!shifted) {
@@ -229,7 +262,10 @@ buttonData = {};
 
 buttonBindings = {
   click: function() {
-    if (swal.getState().isOpen) {
+    if (pause) {
+      let button = document.querySelector(".pause-menu .button.selected");
+      button.click();
+    } else if (swal.getState().isOpen) {
       swal.close();
     } else {
       mousedown();
@@ -241,14 +277,19 @@ buttonBindings = {
   escape: function() {
     if (!buttonRepeats["b"]) {
       buttonRepeats["b"] = true;
-      if (controlLock) exitControlLock();
-      swal.close();
+      if (pause) {
+        togglePause();
+      } else {
+        if (controlLock) exitControlLock();
+        swal.close();
+      }
     }
   },
   stop_escape: function() {
     buttonRepeats["b"] = false;
   },
   switchview: function() {
+    if (pause) return;
     if (!buttonRepeats["y"]) {
       buttonRepeats["y"] = true;
       togglePerspective();
@@ -258,6 +299,7 @@ buttonBindings = {
     buttonRepeats["y"] = false;
   },
   brake: function(value) {
+    if (pause) return;
     physics.env.brakePower = physics.env.maxBrakePower * value;
     braking = true;
     car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
@@ -267,6 +309,7 @@ buttonBindings = {
     }
   },
   stop_brake: function() {
+    if (pause) return;
     physics.env.brakePower = 0;
     braking = false;
     car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
@@ -276,6 +319,7 @@ buttonBindings = {
     }
   },
   accelerate: function(value) {
+    if (pause) return;
     if (!buttonRepeats["rt"]) {
       GamepadControls.accelerateTimestamp = Date.now();
       if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
@@ -289,6 +333,7 @@ buttonBindings = {
     }
   },
   stop_accelerate: function() {
+    if (pause) return;
     buttonRepeats["rt"] = false;
 
     if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) {
@@ -301,6 +346,8 @@ buttonBindings = {
     if (!buttonRepeats["start"]) {
       buttonRepeats["start"] = true;
       togglePause();
+      document.querySelectorAll(".pause-menu .button").forEach(x => x.classList.remove("selected"));
+      document.querySelector(".pause-menu .button").classList.add("selected");
     }
   },
   stop_pause: function() {

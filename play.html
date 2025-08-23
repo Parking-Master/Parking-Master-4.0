@@ -333,6 +333,9 @@
         float: right;
         color: #999;
       }
+      .ui .pause-menu .button.selected {
+        outline: 3px solid #7796ed;
+      }
       .swal-overlay {
         z-index: 100000;
       }
@@ -475,6 +478,8 @@
     let defaultShellMaterial = null;
     let useMobileUI = true;
     let displayReverseCam = false;
+    let mobileSteering = false;
+    let cameraHolderPosition = 0;
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -626,6 +631,7 @@
         car.getObjectByName("CameraHolder_TP").add(camera);
         camera.rotation.set(0, 0, 0);
         PointerControls.isLocked = false;
+        TouchControls.isLocked = false;
         document.querySelector(".pointer").style.display = "none";
         if (engine) car.getObjectByName("Control_Screen").visible = false;
       } else if (newPerspective === 2) {
@@ -633,15 +639,19 @@
         car.getObjectByName("CameraHolder_TP1").add(camera);
         camera.rotation.set(0, 0, 0);
         PointerControls.isLocked = false;
+        TouchControls.isLocked = false;
         document.querySelector(".pointer").style.display = "none";
         if (engine) car.getObjectByName("Control_Screen").visible = false;
       } else if (newPerspective === 0) {
         perspective = 0;
         car.getObjectByName("CameraHolder_FP").add(camera);
         PointerControls.isLocked = true;
+        TouchControls.isLocked = true;
         document.querySelector(".pointer").style.display = "";
         if (engine) car.getObjectByName("Control_Screen").visible = true;
       }
+
+      audio.update();
 
       if (mobile) {
         document.querySelector(".mobile-ui .shifter-box").style.display = "";
@@ -1155,8 +1165,11 @@
       }
       if (!mobile || (mobile && !useMobileUI)) physics.env.heading = Math.max(Math.min(physics.env.heading + (options.carHeadingIncrement / physics.env.wheelTurnRatio), 35), -35);
 
-      camera.fov = defaultFov + (physics.env.speedMS / 8) + (physics.env.acceleration / 40);
+      mobileUI.updateWheel(physics.env.heading);
+
+      camera.fov = defaultFov + (physics.env.speedMS / 5) + (physics.env.acceleration / 30);
       camera.updateProjectionMatrix();
+      car.getObjectByName("CameraHolder_FP").position.z = cameraHolderPosition + ((physics.env.brakePower * physics.env.speedMS) / 15000000);
 
       if (frame % 5 === 0 && countingDown) {
         const timeLeft = (presets.time * 1000) - (Date.now() - presets.startTimestamp);
@@ -1201,7 +1214,7 @@
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
         car.rotateY(physics.env.currentHeading * delta * shiftFactor * driveFactor);
 
-        physics.env.heading = physics.env.heading - ((physics.env.heading / 8) * (physics.env.speedMS / 15));
+        if (!mobileSteering) physics.env.heading = physics.env.heading - ((physics.env.heading / 10) * (physics.env.speedMS / 18));
 
         car.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
         car.getObjectByName("Wheel_FR").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
@@ -1387,6 +1400,7 @@
         });
 
         carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
+        cameraHolderPosition = car.getObjectByName("CameraHolder_FP").position.z;
 
         scene.add(car);
 

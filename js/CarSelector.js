@@ -9,7 +9,8 @@ function selectCar(car) {
   selectedCar = car;
 
   if (premium_cars.indexOf(car) > -1) {
-    audio.sounds["accelerate"] = AudioWrapper(`/sounds/premium_cars/${car}/engine_accelerate.mp3`);
+    audio.sounds["accelerate_exterior"] = AudioWrapper(`/sounds/premium_cars/${car}/engine_accelerate.mp3`);
+    audio.sounds["accelerate_interior"] = AudioWrapper(`/sounds/premium_cars/${car}/engine_accelerate_interior.mp3`);
     audio.sounds["idle"] = AudioWrapper(`/sounds/premium_cars/${car}/engine_idle.mp3`);
 
     if (car === "Ferrari_SF90_Stradale" || car === "Ferrari_Roma") {

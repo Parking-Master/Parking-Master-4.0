@@ -1,4 +1,5 @@
 THREE.TouchControls = function(camera, element) {
+  this.isLocked = true;
   this.action = null;
   this.speed = 1;
   let previousTouch = null;
@@ -23,6 +24,8 @@ THREE.TouchControls = function(camera, element) {
     }
   }
   element.addEventListener("touchmove", (event) => {
+    if (!this.isLocked) return;
+
     let touch = event.touches[0];
     Object.values(event.touches).forEach(x => x.target == element && (console.log(x), touch = x));
     camera.rotation.order = "YXZ";

@@ -28,6 +28,18 @@ document.head.innerHTML += `
   display: none;
   box-shadow: 0 11px 34px 0 rgba(120, 120, 128, 0.1);
 }
+.gamepad-keyboard::after {
+  content: "Use [X] to delete, [B] to exit keyboard.";
+  position: absolute;
+  bottom: 0;
+  margin-bottom: -20px;
+  font-size: 12px;
+  color: #eee;
+  left: 0;
+  text-align: left;
+  text-shadow: 1px 1px #333;
+  opacity: .5;
+}
 .gamepad-keyboard-key {
   position: relative;
   padding: 3px;
@@ -190,8 +202,12 @@ window.addEventListener('gamepadconnected', (e) => {
     let oldSwal = swal;
     swal = function() {
       let output = oldSwal.apply(null, arguments);
-      if (document.querySelector(".swal-button") && /Cancel|Close/g.test(document.querySelector(".swal-button").textContent)) {
+      if (document.querySelector(".swal-button")) {
         document.querySelector(".swal-button").textContent += " [B]";
+
+        if (document.querySelector(".swal-button--confirm")) {
+          if (!document.querySelector(".swal-button--confirm").textContent.includes("[B]")) document.querySelector(".swal-button--confirm").textContent += " [X]";
+        }
       }
       return output;
     };
@@ -200,7 +216,7 @@ window.addEventListener('gamepadconnected', (e) => {
   document.querySelectorAll("*").forEach(element => element.style.cursor = "none");
   GamepadControls.cursor.style.display = "block";
 
-  document.querySelectorAll("input").forEach(x => x.setAttribute("autocomplete", "off"));
+  document.querySelectorAll("input").forEach(x => x.setAttribute("readonly", "readonly"));
 });
 
 window.addEventListener('gamepaddisconnected', (e) => {
@@ -273,39 +289,30 @@ function handleDirectionalMovement() {
         if (direction == "right") {
           GamepadControls.currentKey[1]++;
           if (GamepadControls.currentKey[1] > 9) {
-            GamepadControls.currentKey[1] = 0;
-            GamepadControls.currentKey[0]++;
-            if (GamepadControls.currentKey[0] > 2) {
-              GamepadControls.currentKey[0] = 0;
-            }
+            GamepadControls.currentKey[1] = 9;
           }
         }
         if (direction == "left") {
           GamepadControls.currentKey[1]--;
           if (GamepadControls.currentKey[1] < 0) {
-            GamepadControls.currentKey[0]--;
-
-            if (GamepadControls.currentKey[0] < 0) {
-              GamepadControls.currentKey[0] = 2;
-            }
-
-            GamepadControls.currentKey[1] = rowLengths[GamepadControls.currentKey[0]];
+            GamepadControls.currentKey[1] = 0;
           }
         }
         if (direction == "down") {
+          let oldKey = GamepadControls.currentKey[0];
           GamepadControls.currentKey[0]++;
           if (GamepadControls.currentKey[0] > 2) {
-            GamepadControls.currentKey[0] = 0;
+            GamepadControls.currentKey[0] = 2;
           }
 
-          if (GamepadControls.currentKey[0] == 2 && GamepadControls.currentKey[1] > 3) {
+          if (GamepadControls.currentKey[0] == 2 && GamepadControls.currentKey[1] > 3 && oldKey != GamepadControls.currentKey[0]) {
             GamepadControls.currentKey[1]--;
           }
         }
         if (direction == "up") {
           GamepadControls.currentKey[0]--;
           if (GamepadControls.currentKey[0] < 0) {
-            GamepadControls.currentKey[0] = 2;
+            GamepadControls.currentKey[0] = 0;
           }
 
           if (GamepadControls.currentKey[0] == 1 && GamepadControls.currentKey[1] > 3) {
@@ -395,22 +402,22 @@ function handleButtonEvents() {
 function onButtonPressed(buttonIndex) {
   console.log(`Button ${buttonIndex} pressed`);
   switch(buttonIndex) {
-    case 0: aButtonPressed(); break;  // A button
-    case 1: bButtonPressed(); break;  // B button
-    case 2: xButtonPressed(); break;  // X button
-    case 3: yButtonPressed(); break;  // Y button
-    case 4: lbButtonPressed(); break; // Left Bumper
-    case 5: rbButtonPressed(); break; // Right Bumper
-    case 6: ltButtonPressed(); break; // Left Trigger
-    case 7: rtButtonPressed(); break; // Right Trigger
-    case 8: backButtonPressed(); break; // Back/View button
-    case 9: startButtonPressed(); break; // Start/Menu button
-    case 10: lsButtonPressed(); break; // Left Stick button
-    case 11: rsButtonPressed(); break; // Right Stick button
-    case 12: dpadUpPressed(); break; // D-pad Up
-    case 13: dpadDownPressed(); break; // D-pad Down
-    case 14: dpadLeftPressed(); break; // D-pad Left
-    case 15: dpadRightPressed(); break; // D-pad Right
+    case 0: aButtonPressed(); break;
+    case 1: bButtonPressed(); break;
+    case 2: xButtonPressed(); break;
+    case 3: yButtonPressed(); break;
+    case 4: lbButtonPressed(); break;
+    case 5: rbButtonPressed(); break;
+    case 6: ltButtonPressed(); break;
+    case 7: rtButtonPressed(); break;
+    case 8: backButtonPressed(); break;
+    case 9: startButtonPressed(); break;
+    case 10: lsButtonPressed(); break;
+    case 11: rsButtonPressed(); break;
+    case 12: dpadUpPressed(); break;
+    case 13: dpadDownPressed(); break;
+    case 14: dpadLeftPressed(); break;
+    case 15: dpadRightPressed(); break;
   }
 }
 
@@ -435,16 +442,6 @@ function onButtonReleased(buttonIndex) {
     case 15: (dpadRightReleased(), GamepadControls.buttonEvent("right")); break;
   }
 }
-
-buttonRepeats = {
-  a: false
-};
-buttonData = {
-  rb: {
-    pressTimestamp: null,
-    activated: false
-  }
-};
 
 function insertCharacter(character) {
   if (!document.activeElement) return;
@@ -555,62 +552,56 @@ function toggleSpecialKeyboard() {
   key.classList.add("selected");
 }
 
-// Jump
+function enterKey() {
+  document.activeElement.blur();
+}
+
 function aButtonPressed() {
-  if (!buttonRepeats["a"]) {
-    if (GamepadControls.keyboardLock) {
-      let key = null;
+  if (GamepadControls.keyboardLock) {
+    let key = null;
 
-      let keyElement = document.querySelector(".gamepad-keyboard-key.selected");
-      key = keyElement.textContent;
+    let keyElement = document.querySelector(".gamepad-keyboard-key.selected");
+    key = keyElement.textContent;
 
-      if (keyElement.id) {
-        if (keyElement.id == "space") {
-          key = " ";
-        } else if (keyElement.id == "caps-lock") {
-          if (keyElement.dataset.value == "0") {
-            keyElement.dataset.value = "1";
-            document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toLowerCase());
-          } else {
-            keyElement.dataset.value = "0";
-            document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toUpperCase());
-          }
-          return;
+    if (keyElement.id) {
+      if (keyElement.id == "space") {
+        key = " ";
+      } else if (keyElement.id == "caps-lock") {
+        if (keyElement.dataset.value == "0") {
+          keyElement.dataset.value = "1";
+          document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toLowerCase());
+        } else {
+          keyElement.dataset.value = "0";
+          document.querySelectorAll(".gamepad-keyboard-key").forEach(x => x.textContent = x.textContent.toUpperCase());
         }
+        return;
+      } else if (keyElement.id == "enter") {
+        enterKey();
       }
-
-      insertCharacter(key);
-    } else if (GamepadControls.hoveringElement) {
-      GamepadControls.hoveringElement.classList.add("active");
-      triggerAllClickEvents(GamepadControls.hoveringElement);
-      buttonRepeats["a"] = true;
     }
+
+    insertCharacter(key);
+  } else if (GamepadControls.hoveringElement) {
+    GamepadControls.hoveringElement.classList.add("active");
+    triggerAllClickEvents(GamepadControls.hoveringElement);
   }
 }
 function aButtonReleased() {
   GamepadControls.hoveringElement.classList.remove("active");
   cancelAllClickEvents(GamepadControls.hoveringElement);
-  buttonRepeats["a"] = false;
 }
 
-// Melee
 function bButtonPressed() {
-  if (!buttonRepeats["b"]) {
-    if (GamepadControls.keyboardLock) {
-      document.activeElement.blur();
-    } else {
-      if (document.querySelector(".swal-button") && /Cancel|Close/g.test(document.querySelector(".swal-button").textContent)) {
-        triggerAllClickEvents(document.querySelector(".swal-button"));
-        buttonRepeats["b"] = true;
-      }
+  if (GamepadControls.keyboardLock) {
+    enterKey();
+  } else {
+    if (document.querySelector(".swal-button")) {
+      triggerAllClickEvents(document.querySelector(".swal-button"));
     }
   }
 }
-function bButtonReleased() {
-  buttonRepeats["b"] = false;
-}
+function bButtonReleased() {}
 
-// Sprint
 let deleted = false;
 let spamx = false;
 let spamxTimeout = 0;
@@ -619,14 +610,18 @@ let timestampx = Date.now();
 function xButtonPressed() {
   if (GamepadControls.keyboardLock) {
     if (deleted && !spamx) return;
-    if (!spamx) spamxTimeout = setTimeout(() => spamx = true, 500);
+    if (!spamx) spamxTimeout = setTimeout(() => spamx = true, 400);
     deleted = true;
     if (spamx) {
-      if (Date.now() - timestampx < 100) return;
+      if (Date.now() - timestampx < 75) return;
       timestampx = Date.now();
     }
 
     insertCharacter("delete");
+  } else {
+    if (document.querySelector(".swal-button--confirm")) {
+      triggerAllClickEvents(document.querySelector(".swal-button--confirm"));
+    }
   }
 }
 function xButtonReleased() {
@@ -634,7 +629,6 @@ function xButtonReleased() {
   spamx = false;
 }
 
-// Switch weapon
 function yButtonPressed() {
   if (GamepadControls.keyboardLock) {
     insertCharacter(" ");
@@ -651,7 +645,6 @@ function lbButtonPressed() {
 }
 function lbButtonReleased() {}
 
-// Reload/Interact
 function rbButtonPressed() {
   if (GamepadControls.keyboardLock) {
     let caret = document.activeElement.selectionStart;
@@ -661,7 +654,6 @@ function rbButtonPressed() {
 }
 function rbButtonReleased() {}
 
-// Throw Grenade
 function ltButtonPressed() {
   if (GamepadControls.keyboardLock) {
     toggleSpecialKeyboard();
@@ -669,7 +661,6 @@ function ltButtonPressed() {
 }
 function ltButtonReleased() {}
 
-// Shoot
 function rtButtonPressed() {
   if (GamepadControls.keyboardLock) {
     toggleSpecialKeyboard();
@@ -680,11 +671,13 @@ function rtButtonReleased() {}
 function backButtonPressed() {}
 function backButtonReleased() {}
 
-// Pause
-function startButtonPressed() { console.log("Start/Menu button pressed - Pause game"); }
-function startButtonReleased() { console.log("Start/Menu button released - Resume game"); }
+function startButtonPressed() {
+  if (GamepadControls.keyboardLock) {
+    enterKey();
+  }
+}
+function startButtonReleased() {}
 
-// Crouch
 function lsButtonPressed() {
   if (GamepadControls.keyboardLock) {
     let keyElement = document.querySelector("#caps-lock");
@@ -699,7 +692,6 @@ function lsButtonPressed() {
 }
 function lsButtonReleased() { console.log("Left Stick button released - Stop sprinting"); }
 
-// Zoom
 function rsButtonPressed() {}
 function rsButtonReleased() {}
 
