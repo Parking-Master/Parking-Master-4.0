@@ -61,11 +61,11 @@ function MobileUI() {
         width: 125px !important;
         height: 125px !important;
       }
+      .mobile-ui .context-menu {
+        left: 340px !important;
+      }
     }
     @media only screen and (max-width:800px) {
-      .mobile-ui .context-menu {
-        left: 340px;
-      }
       .infobox {
         position: absolute;
         width: 320px;

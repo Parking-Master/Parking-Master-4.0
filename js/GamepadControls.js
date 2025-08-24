@@ -138,7 +138,7 @@ function handleLookMovement() {
 let stopped = false;
 let looking = false;
 let menuButton = 0;
-let maxButtons = 3;
+let maxButtons = 4;
 let repeatedButton = false;
 function handleDirectionalMovement() {
   const moveX = gamepad.axes[0];
@@ -345,6 +345,7 @@ buttonBindings = {
   pause: function() {
     if (!buttonRepeats["start"]) {
       buttonRepeats["start"] = true;
+      menuButton = 0;
       togglePause();
       document.querySelectorAll(".pause-menu .button").forEach(x => x.classList.remove("selected"));
       document.querySelector(".pause-menu .button").classList.add("selected");

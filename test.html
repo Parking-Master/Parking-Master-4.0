@@ -157,6 +157,21 @@
       .ui .speed #value {
         font-size: 28px;
       }
+      .ui .settings {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        color: #333;
+        font-size: 28px;
+        padding: 5px;
+        background: #fff;
+        border-radius: 6px;
+        bottom: 10px;
+        left: 130px;
+        z-index: 9999;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+        border: .5px solid #999;
+      }
       .ui .points {
         width: 100px;
         border-radius: 0;
@@ -256,6 +271,63 @@
         background-repeat: no-repeat;
         z-index: 10001;
       }
+      .ui .pause-menu {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        margin: 0;
+        z-index: 10000;
+        color: #fff;
+        display: none;
+      }
+      .ui .pause-menu .header {
+        font-size: 40px;
+      }
+      .ui .pause-menu .text {
+        font-size: 18px;
+      }
+      .ui .pause-menu .heading-box {
+        position: absolute;
+        left: 30px;
+        top: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 12px;
+        border-radius: 10px;
+        border: .5px solid #fff;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+      }
+      .ui .pause-menu .continue {
+        margin-top: 20px;
+      }
+      .ui .pause-menu .button {
+        position: relative;
+        margin-top: 10px;
+        background: #ddd;
+        border: none;
+        border-radius: 8px;
+        color: #333;
+        padding: 6px;
+        width: 100%;
+        text-align: left;
+        margin-left: -6px;
+      }
+      .ui .pause-menu .button .value {
+        float: right;
+        color: #999;
+      }
+      .ui .pause-menu .button.selected {
+        outline: 3px solid #7796ed;
+      }
+      .swal-overlay {
+        z-index: 100000;
+      }
     </style>
   </head>
   <body>
@@ -284,7 +356,18 @@
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
       </div>
       <div class="speed"><span id="value">0</span> MPH</div>
+      <div class="settings" onclick="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
       <div class="points"><span id="value">0</span> PTS</div>
+      <div class="pause-menu">
+        <div class="heading-box">
+          <div class="header">Settings</div>
+          <div class="text">Don't worry, the game is paused.</div>
+          <div class="button continue" onclick="togglePause()">Resume</div>
+          <div class="button" onclick="mainMenu()">Main Menu</div>
+          <div class="button renderer-quality" onclick="toggleRendererQuality(this)">Renderer Quality <span class="value">1 (low)</span></div>
+          <div class="button renderer-quality" onclick="toggleCarCreeping(this)">Car creeping <span class="value">off</span></div>
+        </div>
+      </div>
     </div>
     <script>
     let test = true;
@@ -347,6 +430,8 @@
 
     let currentLevel = 1;
 
+    maxButtons = 3;
+
     let testData = {
       "1": {
         time: 120,
@@ -387,6 +472,10 @@
     let frame = 0;
     let controlLock = null;
     let manualSteering = false;
+    let pixelRatio = () => (mobile ? 1.7 : 1);
+    let customRendererQuality = false;
+    let customPixelRatio = 1;
+    let pause = false;
     let stopAnimate = false;
     let resetCarPosition = null;
     let lockPointer = true;
@@ -404,6 +493,7 @@
     let displayReverseCam = false;
     let mobileSteering = false;
     let cameraHolderPosition = 0;
+    let creeping = false;
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -735,6 +825,76 @@
       }
     }
 
+    function updatePauseMenu() {
+      toggleRendererQuality(document.querySelector(".ui .pause-menu .button.renderer-quality"), 0);
+    }
+
+    let pauseStartTime = null;
+    function togglePause() {
+      if (crashed) return;
+
+      if (pause) {
+        document.querySelector(".ui .pause-menu").style.display = "";
+
+        setTimeout(() => {
+          physics.timestamp = performance.now();
+
+          pause = false;
+          animate();
+
+          let timePassed = Date.now() - pauseStartTime;
+          presets.startTimestamp += timePassed;
+
+          countingDown = true;
+        }, 100);
+      } else {
+        countingDown = false;
+        if (document.exitPointerLock) document.exitPointerLock();
+
+        document.querySelector(".ui .pause-menu").style.display = "block";
+        updatePauseMenu();
+        pause = true;
+        pauseStartTime = Date.now();
+      }
+    }
+
+    function toggleRendererQuality(button, increment = 0.1) {
+      if (increment != 0) {
+        customRendererQuality = true;
+        customPixelRatio = (customPixelRatio + increment).toFixed(1) - 0;
+        if (customPixelRatio > 2) customPixelRatio = 1;
+      }
+
+      let amount = customPixelRatio < 1.3 ? "low" : customPixelRatio < 1.6 ? "medium" : "high";
+      button.querySelector(".value").textContent = `${customPixelRatio} (${amount})`;
+      renderer.setPixelRatio(customPixelRatio);
+      renderer.render(scene, camera);
+    }
+
+    function toggleCarCreeping(button) {
+      if (creeping) {
+        creeping = false;
+      } else {
+        creeping = true;
+      }
+
+      button.querySelector(".value").textContent = creeping ? "on" : "off";
+    }
+
+    function mainMenu() {
+      swal({
+        text: "You will be returned to the main menu.",
+        buttons: ["Continue", "Cancel"],
+        closeOnEnterKey: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false
+      }).then(result => {
+        if (!result) {
+          location.replace("/");
+        }
+      });
+    }
+
     function animate() {
       if (stopAnimate) return;
 
@@ -759,11 +919,23 @@
         interiorLight.translateY(1);
         interiorLight.translateX(0.5);
 
-        if (engine && throttle) {
-          if (currentGear === "drive") {
-            physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePower);
-          } else if (currentGear === "reverse") {
-            physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePowerReverse);
+        if (engine) {
+          if (throttle) {
+            if (currentGear === "drive") {
+              physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePower);
+            } else if (currentGear === "reverse") {
+              physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePowerReverse);
+            }
+          } else if (!overrideEngineReset) {
+            if (creeping && (currentGear == "drive" || currentGear == "reverse") && Date.now() - presets.startTimestamp > 2000) {
+              if (braking) {
+                physics.env.enginePower = 0;
+              } else {
+                physics.env.enginePower = 1000;
+              }
+            } else {
+              physics.env.enginePower = 0;
+            }
           }
         } else {
           if (!overrideEngineReset) physics.env.enginePower = 0;
@@ -894,7 +1066,13 @@
     }
 
     function onWindowResize() {
-      renderer.setPixelRatio(mobile ? 1.7 : 1);
+      if (customRendererQuality) {
+        renderer.setPixelRatio(customPixelRatio);
+      } else {
+        customPixelRatio = pixelRatio();
+        renderer.setPixelRatio(pixelRatio());
+      }
+
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.5, false);

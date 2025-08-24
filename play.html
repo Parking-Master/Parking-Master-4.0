@@ -378,6 +378,7 @@
           <div class="button" onclick="mainMenu()">Main Menu</div>
           <div class="button" onclick="toggleGraphicsMode(this)">Graphics Mode <span class="value">Default</span></div>
           <div class="button renderer-quality" onclick="toggleRendererQuality(this)">Renderer Quality <span class="value">1 (low)</span></div>
+          <div class="button renderer-quality" onclick="toggleCarCreeping(this)">Car creeping <span class="value">off</span></div>
         </div>
       </div>
     </div>
@@ -480,6 +481,7 @@
     let displayReverseCam = false;
     let mobileSteering = false;
     let cameraHolderPosition = 0;
+    let creeping = false;
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -826,7 +828,7 @@
         return false;
       }
     }
-    
+
     function driveStart() {
       if (engine && !crashed && (currentGear === "drive" || currentGear === "reverse")) audio.accelerate();
       throttle = true;
@@ -1008,6 +1010,16 @@
       renderer.render(scene, camera);
     }
 
+    function toggleCarCreeping(button) {
+      if (creeping) {
+        creeping = false;
+      } else {
+        creeping = true;
+      }
+
+      button.querySelector(".value").textContent = creeping ? "on" : "off";
+    }
+
     function mainMenu() {
       swal({
         text: "You will be returned to the main menu.",
@@ -1050,11 +1062,23 @@
         interiorLight.translateY(1);
         interiorLight.translateX(0.5);
 
-        if (engine && throttle) {
-          if (currentGear === "drive") {
-            physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePower);
-          } else if (currentGear === "reverse") {
-            physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePowerReverse);
+        if (engine) {
+          if (throttle) {
+            if (currentGear === "drive") {
+              physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePower);
+            } else if (currentGear === "reverse") {
+              physics.env.enginePower = Math.min(physics.env.enginePower + 1500, physics.env.maxEnginePowerReverse);
+            }
+          } else if (!overrideEngineReset) {
+            if (creeping && (currentGear == "drive" || currentGear == "reverse") && Date.now() - presets.startTimestamp > 2000) {
+              if (braking) {
+                physics.env.enginePower = 0;
+              } else {
+                physics.env.enginePower = 1000;
+              }
+            } else {
+              physics.env.enginePower = 0;
+            }
           }
         } else {
           if (!overrideEngineReset) physics.env.enginePower = 0;
