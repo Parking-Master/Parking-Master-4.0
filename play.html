@@ -608,7 +608,7 @@
             car.getObjectByName("Light_Bloom").material.opacity = 0;
           }
         } else if (id === 1) {
-          car.getObjectByName("Light_Bloom").material.opacity = 0.4;
+          car.getObjectByName("Light_Bloom").material.opacity = 0.2;
           car.getObjectByName("Light_Bloom").material.color.set(0xff0000);
           car.getObjectByName("Light_Bloom").material.depthTest = false;
           car.getObjectByName("Light_Bloom").material.side = THREE.BackSide;
@@ -1103,8 +1103,10 @@
             PointerControls.pointerSpeed = pointerSpeed / 3;
             TouchControls.speed = touchSpeed / 3;
             document.querySelector(".pointer").classList.add("active");
-            if (typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) intersections[0].object.getObjectByName("PointerText").visible = true;
-            TouchControls.showUseButton();
+            if (perspective == 0 && typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) {
+              intersections[0].object.getObjectByName("PointerText").visible = true;
+              TouchControls.showUseButton();
+            }
           } else {
             document.querySelector(".pointer").classList.remove("active");
             PointerControls.pointerSpeed = pointerSpeed;
@@ -1309,7 +1311,7 @@
         if (perspective === 0) PointerControls.lock();
       }
 
-      if (intersections && intersections[0]) {
+      if (perspective == 0 && intersections && intersections[0]) {
         const control = intersections.map(x => x.object.name);
         if (!controlLock) {
           audio.click();
@@ -1502,9 +1504,9 @@
           defaultShellMaterial = shell.material.clone();
           shell.material.envMap = envMap;
           shell.material.envMapIntensity = 1.2;
-          shell.material.metalness = 0.85;
-          shell.material.roughness = 0.10;
-          shell.material.clearcoat = 1.0;
+          shell.material.metalness = 0.5;
+          shell.material.roughness = 0.1;
+          shell.material.clearcoat = 1;
           shell.material.clearcoatRoughness = 0.03;
         });
       }
