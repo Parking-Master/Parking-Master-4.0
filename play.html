@@ -368,7 +368,7 @@
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
       </div>
       <div class="speed"><span id="value">0</span> MPH</div>
-      <div class="settings" onclick="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
+      <div class="settings" onclick="togglePause()" ontouchstart="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
       <div class="points"><span id="value">0</span> PTS</div>
       <div class="pause-menu">
         <div class="heading-box">
@@ -516,7 +516,7 @@
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
     const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x2b2c2d, 0.5);
-    const interiorLight = new THREE.PointLight(0xffffff, 0.5);
+    const interiorLight = new THREE.PointLight(0xffffff, 0.8);
     directionalLight.castShadow = true;
     directionalLight.shadow.camera.left = -5;
     directionalLight.shadow.camera.right = 5;

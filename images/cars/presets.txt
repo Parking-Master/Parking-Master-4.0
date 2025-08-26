@@ -1,0 +1,11 @@
+cam_pos 4.889, 1.400, 8.723
+cam_rot -4.80, 30.40, 1.80
+cam_fov 25
+scene_background rgb 182, 182, 182
+scene_fog linear, scene_background, far 250
+lights directional intensity 2 #fff, ambient 1 #222, hemisphere 1 #fff sky #c0c0c0 ground
+shadows yes
+wheels_turned yes
+ground #fff 1000x1x1000
+ground_pos_y -0.5
+image_dimensions 800x600

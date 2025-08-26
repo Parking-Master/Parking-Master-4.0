@@ -38,7 +38,7 @@ function MobileUI() {
   document.querySelector(".ui").innerHTML += `
   <div class="mobile-ui">
     <div class="context-menu">
-      <button class="toggle-view" onclick="togglePerspective()"><i class="fa fa-camera"></i></button>
+      <button class="toggle-view" ontouchstart="togglePerspective()"><i class="fa fa-camera"></i></button>
     </div>
     <div class="pedal-area left-pedal-area"></div>
     <button class="pedal left-pedal"></button>
@@ -46,10 +46,10 @@ function MobileUI() {
     <div class="steering-wheel"></div>
     <button class="use">Use</button>
     <div class="shifter-box">
-      <div class="shifter-box-option" data-gear="park" onclick="touchShift(this)">P</div>
-      <div class="shifter-box-option" data-gear="reverse" onclick="touchShift(this)">R</div>
-      <div class="shifter-box-option" data-gear="neutral" onclick="touchShift(this)">N</div>
-      <div class="shifter-box-option selected" data-gear="drive" onclick="touchShift(this)">D</div>
+      <div class="shifter-box-option" data-gear="park" ontouchstart="touchShift(this)">P</div>
+      <div class="shifter-box-option" data-gear="reverse" ontouchstart="touchShift(this)">R</div>
+      <div class="shifter-box-option" data-gear="neutral" ontouchstart="touchShift(this)">N</div>
+      <div class="shifter-box-option selected" data-gear="drive" ontouchstart="touchShift(this)">D</div>
     </div>
   </div>
   `;
@@ -354,5 +354,18 @@ function MobileUI() {
 
   if (document.querySelector(".start-banner")) {
     this.startBannerUp();
+  }
+
+  if (typeof swal !== "undefined") {
+    let oldSwal = swal;
+    swal = function() {
+      let output = oldSwal.apply(null, arguments);
+      if (document.querySelector(".swal-button")) {
+        document.querySelector(".swal-button").ontouchstart = (event) => {
+          if (event.touches.length > 1) document.querySelector(".swal-button").click();
+        };
+      }
+      return output;
+    };
   }
 }

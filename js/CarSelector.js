@@ -2,7 +2,8 @@ let selectedCar = null;
 let premium_cars = [
   "G_Wagon",
   "Ferrari_SF90_Stradale",
-  "Ferrari_Roma"
+  "Ferrari_Roma",
+  "Porsche_Carrera",
 ];
 
 function selectCar(car) {

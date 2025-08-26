@@ -356,7 +356,7 @@
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
       </div>
       <div class="speed"><span id="value">0</span> MPH</div>
-      <div class="settings" onclick="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
+      <div class="settings" onclick="togglePause()" ontouchstart="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
       <div class="points"><span id="value">0</span> PTS</div>
       <div class="pause-menu">
         <div class="heading-box">
@@ -896,7 +896,7 @@
     }
 
     function animate() {
-      if (stopAnimate) return;
+      if (stopAnimate || pause) return;
 
       frame++;
 
@@ -1081,6 +1081,7 @@
     onWindowResize();
 
     physics.onUpdate = function(delta) {
+      if (pause) return;
       if (car) {
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
         const driveFactor= physics.env.currentGear === "drive" ? 1 : 2;
@@ -1130,6 +1131,9 @@
       if (event.key === "b" && !event.repeat) {
         brakeStart();
       }
+      if (event.key === "p" && !event.repeat) {
+        togglePause();
+      }
     });
 
     document.addEventListener("keyup", function(event) {
@@ -1150,7 +1154,7 @@
     });
 
     function mousedown(event) {
-      if (!mobile && document.pointerLockElement == null && lockPointer) {
+      if (!mobile && document.pointerLockElement == null && lockPointer && (event ? event.target.className != "settings" : true) && !pause) {
         document.body.requestPointerLock();
         if (perspective === 0) PointerControls.lock();
       }
