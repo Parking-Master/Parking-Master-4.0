@@ -1034,6 +1034,28 @@
       });
     }
 
+    function checkIntersections() {
+      raycaster.setFromCamera(centerVector, camera);
+      intersections = raycaster.intersectObjects(raycastTargets).filter(x => x.object.name);
+      for (let i = 0; i < raycastTargets.length; i++) {
+        if (typeof raycastTargets[i].getObjectByName("PointerText") !== "undefined") raycastTargets[i].getObjectByName("PointerText").visible = false;
+      }
+
+      if (intersections[0]) {
+        PointerControls.pointerSpeed = pointerSpeed / 3;
+        TouchControls.speed = touchSpeed / 3;
+        document.querySelector(".pointer").classList.add("active");
+        if (perspective == 0 && typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) {
+          intersections[0].object.getObjectByName("PointerText").visible = true;
+          TouchControls.showUseButton();
+        }
+      } else {
+        document.querySelector(".pointer").classList.remove("active");
+        PointerControls.pointerSpeed = pointerSpeed;
+        TouchControls.speed = touchSpeed;
+      }
+    }
+
     function animate() {
       if (stopAnimate || pause) return;
 
@@ -1093,25 +1115,7 @@
         }
 
         if (frame % 10 === 0) {
-          raycaster.setFromCamera(centerVector, camera);
-          intersections = raycaster.intersectObjects(raycastTargets).filter(x => x.object.name);
-          for (let i = 0; i < raycastTargets.length; i++) {
-            if (typeof raycastTargets[i].getObjectByName("PointerText") !== "undefined") raycastTargets[i].getObjectByName("PointerText").visible = false;
-          }
-
-          if (intersections[0]) {
-            PointerControls.pointerSpeed = pointerSpeed / 3;
-            TouchControls.speed = touchSpeed / 3;
-            document.querySelector(".pointer").classList.add("active");
-            if (perspective == 0 && typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) {
-              intersections[0].object.getObjectByName("PointerText").visible = true;
-              TouchControls.showUseButton();
-            }
-          } else {
-            document.querySelector(".pointer").classList.remove("active");
-            PointerControls.pointerSpeed = pointerSpeed;
-            TouchControls.speed = touchSpeed;
-          }
+          checkIntersections();
         }
 
         if (collisionWarning) {
@@ -1286,6 +1290,13 @@
       if (event.key === "p" && !event.repeat) {
         togglePause();
       }
+      if (event.key === "Shift" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.repeat) {
+        if (!controlLock && perspective == 0 && physics.env.speedMS <= 0.2) {
+          camera.lookAt(car.getObjectByName("Shifter").getWorldPosition(new THREE.Vector3()));
+          intersections = [{ object: car.getObjectByName("Shifter") }];
+          mousedown();
+        }
+      }
     });
 
     document.addEventListener("keyup", function(event) {
@@ -1405,7 +1416,7 @@
         car.getObjectByName("Control_Screen").material = new THREE.MeshBasicMaterial({ map: controlScreenMap });
         car.getObjectByName("CameraHolder_Reverse").add(reverseCamera);
 
-        raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Lever"), car.getObjectByName("Lever_Alt"), car.getObjectByName("Shifter"), car.getObjectByName("Control_Screen")];
+        raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Shifter")];
         raycastTargets.forEach((control, index) => {
           if (!controls[control.name]) return raycastTargets.splice(index, 1);
         });
