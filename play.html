@@ -1240,7 +1240,7 @@
       if (pause) return;
       if (car) {
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
-        const driveFactor= physics.env.currentGear === "drive" ? 1 : 2;
+        const driveFactor = physics.env.currentGear === "drive" ? 1 : 2;
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
         car.rotateY(physics.env.currentHeading * delta * shiftFactor * driveFactor);
 
@@ -1281,7 +1281,7 @@
       }
       if (event.key === "Tab" && !event.repeat) {
         event.preventDefault();
-        if (controlLock) return exitControlLock();
+        if (controlLock) return exitControlLock(), camera.rotation.set(0, 0, 0);
         togglePerspective();
       }
       if (event.key === "b" && !event.repeat) {
