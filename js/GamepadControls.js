@@ -10,6 +10,7 @@ GamepadControls = {
     "click": "a",
     "escape": "b",
     "pause": "start",
+    "confirm": "x"
   },
   accelerateTimestamp: Date.now()
 };
@@ -66,6 +67,24 @@ window.addEventListener('gamepadconnected', (e) => {
   GamepadControls.isConnected = true;
   gamepad = e.gamepad;
   initButtonStates();
+  poll();
+
+  if (typeof swal !== "undefined") {
+    let oldSwal = swal;
+    swal = function() {
+      let output = oldSwal.apply(null, arguments);
+      if (document.querySelector(".swal-button")) {
+        document.querySelector(".swal-button").textContent += " [B]";
+
+        if (document.querySelector(".swal-button--confirm")) {
+          if (!document.querySelector(".swal-button--confirm").textContent.includes("[B]")) document.querySelector(".swal-button--confirm").textContent += " [X]";
+        }
+      }
+      return output;
+    };
+    swal.close = oldSwal.close;
+    swal.getState = oldSwal.getState;
+  }
 });
 
 window.addEventListener('gamepaddisconnected', (e) => {
@@ -277,11 +296,14 @@ buttonBindings = {
   escape: function() {
     if (!buttonRepeats["b"]) {
       buttonRepeats["b"] = true;
-      if (pause) {
+      if (swal.getState().isOpen) {
+        if (document.querySelector(".swal-button")) {
+          document.querySelector(".swal-button").click();
+        }
+      } else if (pause) {
         togglePause();
       } else {
         if (controlLock) exitControlLock();
-        swal.close();
       }
     }
   },
@@ -300,7 +322,7 @@ buttonBindings = {
   },
   brake: function(value) {
     if (pause) return;
-    physics.env.brakePower = physics.env.maxBrakePower * value;
+    physics.env.brakePower = Math.min(physics.env.brakePower + physics.env.maxBrakePower / 10 * value, physics.env.maxBrakePower);
     braking = true;
     car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
 
@@ -310,7 +332,6 @@ buttonBindings = {
   },
   stop_brake: function() {
     if (pause) return;
-    physics.env.brakePower = 0;
     braking = false;
     car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
 
@@ -353,10 +374,14 @@ buttonBindings = {
   },
   stop_pause: function() {
     buttonRepeats["start"] = false;
-  }
+  },
+  confirm: function() {
+    if (document.querySelector(".swal-button--confirm")) {
+      document.querySelector(".swal-button--confirm").click();
+    }
+  },
+  stop_confirm: function() {}
 };
-
-poll();
 
 GamepadControls.onsprintend = function() {
   if (GamepadControls.isConnected) buttonBindings.sprint(true);

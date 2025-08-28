@@ -211,6 +211,8 @@ window.addEventListener('gamepadconnected', (e) => {
       }
       return output;
     };
+    swal.close = oldSwal.close;
+    swal.getState = oldSwal.getState;
   }
 
   document.querySelectorAll("*").forEach(element => element.style.cursor = "none");

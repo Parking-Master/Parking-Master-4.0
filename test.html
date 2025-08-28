@@ -884,12 +884,12 @@
     function mainMenu() {
       swal({
         text: "You will be returned to the main menu.",
-        buttons: ["Continue", "Cancel"],
+        buttons: ["Cancel", "Continue"],
         closeOnEnterKey: false,
         closeOnEsc: false,
         closeOnClickOutside: false
       }).then(result => {
-        if (!result) {
+        if (result) {
           location.replace("/");
         }
       });
@@ -946,7 +946,7 @@
           if (keyboardBraking) physics.env.brakePower = Math.min(physics.env.brakePower + 500, physics.env.maxBrakePower);
         } else {
           physics.env.braking = false;
-          physics.env.brakePower = 0;
+          physics.env.brakePower = Math.max(physics.env.brakePower - 1000, 0);
         }
 
         if (frame % 10 === 0) {
@@ -960,8 +960,10 @@
             PointerControls.pointerSpeed = pointerSpeed / 3;
             TouchControls.speed = touchSpeed / 3;
             document.querySelector(".pointer").classList.add("active");
-            if (typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) intersections[0].object.getObjectByName("PointerText").visible = true;
-            TouchControls.showUseButton();
+            if (perspective == 0 && typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) {
+              intersections[0].object.getObjectByName("PointerText").visible = true;
+              TouchControls.showUseButton();
+            }
           } else {
             document.querySelector(".pointer").classList.remove("active");
             PointerControls.pointerSpeed = pointerSpeed;
@@ -1036,7 +1038,9 @@
 
       camera.fov = defaultFov + (physics.env.speedMS / 5) + (physics.env.acceleration / 30);
       camera.updateProjectionMatrix();
-      car.getObjectByName("CameraHolder_FP").position.z = cameraHolderPosition + ((physics.env.brakePower * physics.env.speedMS) / 15000000);
+      car.getObjectByName("CameraHolder_FP").position.z = cameraHolderPosition.z + Math.min((physics.env.brakePower * physics.env.speedMS) / 10000000, 0.3);
+      car.getObjectByName("CameraHolder_FP").position.x = cameraHolderPosition.x - (physics.env.heading / 40) * (physics.env.speedMS / 70);
+      car.getObjectByName("CameraHolder_TP").position.x = (physics.env.heading / 15) * (physics.env.speedMS / 50);
 
       if (frame % 5 === 0 && countingDown) {
         const timeLeft = (presets.time * 1000) - (Date.now() - presets.startTimestamp);
@@ -1125,7 +1129,7 @@
       }
       if (event.key === "Tab" && !event.repeat) {
         event.preventDefault();
-        if (controlLock) return exitControlLock();
+        if (controlLock) return exitControlLock(), camera.rotation.set(0, 0, 0);
         togglePerspective();
       }
       if (event.key === "b" && !event.repeat) {
@@ -1133,6 +1137,13 @@
       }
       if (event.key === "p" && !event.repeat) {
         togglePause();
+      }
+      if (event.key === "Shift" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.repeat) {
+        if (!controlLock && perspective == 0 && physics.env.speedMS <= 0.2) {
+          camera.lookAt(car.getObjectByName("Shifter").getWorldPosition(new THREE.Vector3()));
+          intersections = [{ object: car.getObjectByName("Shifter") }];
+          mousedown();
+        }
       }
     });
 
@@ -1159,7 +1170,7 @@
         if (perspective === 0) PointerControls.lock();
       }
 
-      if (intersections && intersections[0]) {
+      if (perspective == 0 && intersections && intersections[0]) {
         const control = intersections.map(x => x.object.name);
         if (!controlLock) {
           audio.click();
@@ -1270,7 +1281,7 @@
         });
 
         carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
-        cameraHolderPosition = car.getObjectByName("CameraHolder_FP").position.z;
+        cameraHolderPosition = car.getObjectByName("CameraHolder_FP").position.clone();
 
         scene.add(car);
 
