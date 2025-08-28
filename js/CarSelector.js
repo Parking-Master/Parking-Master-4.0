@@ -1,3 +1,5 @@
+availableCars = ["Honda_Civic_Sport_Touring", "Ram_1500_TRX", "G_Wagon", "Ferrari_SF90_Stradale", "Ferrari_Roma", "Porsche_Carrera", "Toyota_Harrier", "BMW_Gran_Coupe"];
+
 let selectedCar = null;
 let premium_cars = [
   "G_Wagon",

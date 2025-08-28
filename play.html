@@ -362,7 +362,7 @@
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
         <p class="infobox-header">Objective</p>
-        <p class="infobox-level">Level <span id="value">1</span> / 15</p>
+        <p class="infobox-level">Level <span id="value">1</span> / 20</p>
         <p class="infobox-timer">0:00</p>
         <br>
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
@@ -448,6 +448,7 @@
     let spotDistancesBlue = [];
     let spotDistancesMystery = [];
     let spotDistancesHandicap = [];
+    let spotDistancesPrize = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -741,11 +742,12 @@
       let inBluespot = spotDistancesBlue.filter(x => x < 2).length === 4;
       let inMystery = spotDistancesMystery.filter(x => x < 2).length === 4;
       let inHandicap = spotDistancesHandicap.filter(x => x < 2).length === 4;
+      let inPrize = spotDistancesPrize.filter(x => x < 2).length === 4;
       let mysterySpot = spotDistancesMystery.filter(x => x < 2);
-      if (inSpot || inBluespot || inMystery || inHandicap) {
+      if (inSpot || inBluespot || inMystery || inHandicap || inPrize) {
         if (inHandicap) return gameOver("handicap");
 
-        const spotDistancesTemp = inSpot ? spotDistances : inBluespot ? spotDistancesBlue : mysterySpot;
+        const spotDistancesTemp = inSpot ? spotDistances : inBluespot ? spotDistancesBlue : inMystery ? mysterySpot : spotDistancesPrize;
         countingDown = false;
         audio.sounds.drumroll.play();
 
@@ -790,26 +792,75 @@
         new Image().src = `/images/grade_${grade}.png`;
 
         setTimeout(() => {
-          swal({
-            icon: `/images/grade_${grade}.png`,
-            title: `${score} out of 10`,
-            text: `${text} +${points} points`,
-            button: "Next level",
-            closeOnEnterKey: false,
-            closeOnEsc: false,
-            closeOnClickOutside: false
-          }).then(() => {
-            document.querySelector(".swal-modal").style.border = "";
+          if (inPrize) {
+            if (user.loggedIn && availableCars.filter(car => !user.preferences.cars.includes(car)).length > 0) {
+              let ownedCars = availableCars.filter(car => !user.preferences.cars.includes(car));
+              let car = ownedCars[Math.floor(Math.random() * ownedCars.length)];
 
-            user.set("points", (user.preferences.points || 0) + points);
+              swal({
+                icon: `/images/cars/${car}.png`,
+                title: `${score} out of 10`,
+                text: `You won a free car! Claim your new ${car.replace(/_/g, " ")} any time from the shop.`,
+                button: "Next level",
+                closeOnEnterKey: false,
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              }).then(() => {
+                document.querySelector(".swal-modal").style.border = "";
 
-            loadLevel(currentLevel + 1);
+                user.set("points", (user.preferences.points || 0) + points);
 
-            if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
-          });
+                let cars = user.preferences.cars;
+                cars.push(car);
+                user.set("cars", cars);
+
+                loadLevel(currentLevel + 1);
+
+                if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+              });
+            } else {
+              points = 50;
+
+              swal({
+                icon: `/images/grade_${grade}.png`,
+                title: `${score} out of 10`,
+                text: `You earned +${points} points!`,
+                button: "Next level",
+                closeOnEnterKey: false,
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              }).then(() => {
+                document.querySelector(".swal-modal").style.border = "";
+
+                user.set("points", (user.preferences.points || 0) + points);
+
+                loadLevel(currentLevel + 1);
+
+                if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+              });
+            }
+          } else {
+            swal({
+              icon: `/images/grade_${grade}.png`,
+              title: `${score} out of 10`,
+              text: `${text} +${points} points`,
+              button: "Next level",
+              closeOnEnterKey: false,
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            }).then(() => {
+              document.querySelector(".swal-modal").style.border = "";
+
+              user.set("points", (user.preferences.points || 0) + points);
+
+              loadLevel(currentLevel + 1);
+
+              if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+            });
+          }
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
           if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
-          if (inMystery && points >= 10) document.querySelector(".swal-modal").style.border = "5px solid gold";
+          if ((inMystery && points >= 10) || inPrize) document.querySelector(".swal-modal").style.border = "5px solid gold";
         }, 4000);
 
         return true;
@@ -1148,6 +1199,7 @@
           const spotDistancesMysteryTemp = [];
           const spotDistancesBlueTemp = [];
           const spotDistancesHandicapTemp = [];
+          const spotDistancesPrizeTemp = [];
           const spotDistancesTemp = [];
           ground.traverse(wallPoint => {
             const wallPointPosition = wallPoint.getWorldPosition(new THREE.Vector3());
@@ -1181,6 +1233,8 @@
                 spotDistancesMysteryTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               } else if (wallPoint.name.includes("Handicap")) {
                 spotDistancesHandicapTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else if (wallPoint.name.includes("Prize")) {
+                spotDistancesPrizeTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               } else {
                 spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               }
@@ -1190,6 +1244,7 @@
           spotDistancesBlue = spotDistancesBlueTemp;
           spotDistancesMystery = spotDistancesMysteryTemp;
           spotDistancesHandicap = spotDistancesHandicapTemp;
+          spotDistancesPrize = spotDistancesPrizeTemp;
           spotDistances = spotDistancesTemp;
         }
       }
@@ -1242,7 +1297,7 @@
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
         const driveFactor = physics.env.currentGear === "drive" ? 1 : 2;
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
-        car.rotateY(physics.env.currentHeading * delta * shiftFactor * driveFactor);
+        car.rotateY(physics.env.currentHeading * 1.5 * delta * shiftFactor * driveFactor);
 
         if (!mobileSteering) physics.env.heading = physics.env.heading - ((physics.env.heading / 10) * (physics.env.speedMS / 18));
 
