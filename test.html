@@ -423,6 +423,16 @@
           mobileUI.startBannerDown();
         }, 4000);
         return;
+      } else if (currentLevel === 3) {
+        let veeredDecrement = testData["3"].data.veeredCount * 200;
+        let stopSignsDecrement = testData["3"].data.stopSignsPassed ? 400 : 0;
+        if (veeredDecrement > 200) veeredDecrement *= 2;
+
+        let lowestDistance = Math.min(...testData["3"].data.centerlinerecords);
+        let highestDistance = Math.max(...testData["3"].data.centerlinerecords);
+        let precisionDecrement = 500 - Math.round((Math.max(2 - highestDistance, 0) * (500 / 4)) + (Math.max(2 + lowestDistance, 0) * (500 / 4)));
+
+        testData[3].data.score = 1000 - Math.min(veeredDecrement + stopSignsDecrement + precisionDecrement, 1000);
       }
 
       loadLevel(currentLevel + 1);
@@ -443,15 +453,19 @@
       },
       "2": {
         time: 60,
-        objective: "Challenge 2: Precision. We will test your driving precision. Park into the parking spot marked with HERE. Shift into park to finish.",
+        objective: "Challenge 2: Precision. We will test your driving precision. Park into the parking spot that the arrow is pointing at. Shift into park to finish.",
         data: {
           score: 0
         }
       },
       "3": {
         time: 90,
-        objective: "Challenge 3: Awareness. We will test how aware you are during driving. You'll be purposely distracted, and your goal is to pay attention to traffic and driving while distracted.",
+        objective: "Challenge 3: Awareness. We will test how aware you are during driving. We'll distract you, and your goal is to pay attention to traffic and driving while you avoid being distracted.",
         data: {
+          centerlinerecords: [],
+          veered: false,
+          veeredCount: 0,
+          stopSignsPassed: true,
           score: 0
         }
       }
@@ -823,6 +837,15 @@
       if (currentLevel === 1) {
         testData["1"].data.centerlinerecords = [];
       }
+      if (currentLevel === 3) {
+        testData["3"].data = {
+          centerlinerecords: [],
+          veered: false,
+          veeredCount: 0,
+          stopSignsPassed: true,
+          score: 0
+        }
+      }
     }
 
     function updatePauseMenu() {
@@ -1039,7 +1062,7 @@
       camera.fov = defaultFov + (physics.env.speedMS / 5) + (physics.env.acceleration / 30);
       camera.updateProjectionMatrix();
       car.getObjectByName("CameraHolder_FP").position.z = cameraHolderPosition.z + Math.min((physics.env.brakePower * physics.env.speedMS) / 10000000, 0.3);
-      car.getObjectByName("CameraHolder_FP").position.x = cameraHolderPosition.x - (physics.env.heading / 40) * (physics.env.speedMS / 70);
+      car.getObjectByName("CameraHolder_FP").position.x = cameraHolderPosition.x - Math.max(Math.min((physics.env.heading / 40) * (physics.env.speedMS / 70), 0.1), -0.1);
       car.getObjectByName("CameraHolder_TP").position.x = (physics.env.heading / 15) * (physics.env.speedMS / 50);
 
       if (frame % 5 === 0 && countingDown) {
@@ -1056,6 +1079,23 @@
         testData["1"].data.centerlinerecords.push(car.position.z);
 
         const endPosition = new THREE.Vector3(-123, 0, -1.5);
+        if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
+      } else if (currentLevel === 3) {
+        testData["3"].data.centerlinerecords.push(car.position.z);
+
+        if ((car.position.z > 2.8 || car.position.z < 0.9)) {
+          if (!testData[3].data.veered) {
+            testData[3].data.veered = true;
+            testData[3].data.veeredCount++;
+          }
+        } else {
+          testData[3].data.veered = false;
+        }
+
+        const stopPosition = new THREE.Vector3(-6, 0, 1);
+        if (car.position.distanceTo(stopPosition) < 8 && physics.env.speedMPH < 0.5) testData[3].data.stopSignsPassed = false;
+
+        const endPosition = new THREE.Vector3(85, 0, 2);
         if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
       }
 
@@ -1090,7 +1130,7 @@
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
         const driveFactor= physics.env.currentGear === "drive" ? 1 : 2;
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
-        car.rotateY(physics.env.currentHeading * delta * shiftFactor * driveFactor);
+        car.rotateY(physics.env.currentHeading * 1.5 * delta * shiftFactor * driveFactor);
 
         if (!mobileSteering) physics.env.heading = physics.env.heading - ((physics.env.heading / 10) * (physics.env.speedMS / 18));
 
