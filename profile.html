@@ -501,7 +501,8 @@
         }).then(username => {
           if (!username) return;
           if (username.length >= 3 && username.length < 30) {
-            if (/[a-zA-Z0-9_-]/.test(username)) {
+            if (username == user.username) return;
+            if (/^[a-zA-Z0-9_-]+$/.test(username)) {
               user.set("root:username", username);
 
               let displayUsername = username;

@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Parking Master Level 1</title>
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100&display=swap");
       @keyframes implode {
         0% {
           transform: scale(1);
@@ -248,13 +249,6 @@
         pointer-events: none;
         z-index: 10100;
         transition: opacity 1s;
-        color: #fff;
-        font-size: 30px;
-        font-weight: 100;
-        text-align: center;
-      }
-      .banner div {
-        margin-top: 30px;
       }
       .banner.loading {
         background-image: url(/images/loading.gif);
@@ -262,6 +256,26 @@
         background-position: center;
         background-repeat: no-repeat;
         background-color: #fff !important;
+      }
+      .final-banner {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        background-color: #000;
+        opacity: 0;
+        z-index: 10100;
+        color: #fff;
+        font-size: 60px;
+        font-family: "Montserrat", Arial;
+        align-content: center;
+        text-align: center;
+        transition: opacity 3s ease-in-out;
+        display: none;
       }
       .tip {
         position: absolute;
@@ -346,6 +360,34 @@
       .swal-overlay {
         z-index: 100000;
       }
+      .final-banner .final-text {
+        font-size: 20px;
+        opacity: 0;
+        transition: opacity 1s;
+        width: 500px;
+        margin: auto;
+        margin-top: 10px;
+      }
+      .final-banner .final-text div {
+        margin-bottom: 20px;
+      }
+      .final-banner .final-continue {
+        padding: 15px 25px;
+        background: #ddd;
+        text-align: center;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        transition: opacity 1s, background .1s, transform .15s ease-out;
+        opacity: 0;
+      }
+      .final-banner .final-continue:hover {
+        background: #bbb;
+        cursor: default;
+      }
+      .final-banner .final-continue:active {
+        transform: scale(0.9);
+      }
     </style>
   </head>
   <body>
@@ -362,9 +404,15 @@
     <script src="/js/sweetalert.js"></script>
     <script src="/js/MobileUI.js"></script>
     <script src="/js/user.js"></script>
+    <script src="/js/plugins.js"></script>
     <div class="ui">
       <img class="vignette" src="/images/high_quality_graphics/vignette.png">
       <div class="banner loading" style="opacity: 1"></div>
+      <div class="final-banner">
+        <div class="final-score"><span id="value">0</span>%</div>
+        <div class="final-text">Was your final parking score</div>
+        <button class="final-continue">Continue</button>
+      </div>
       <div class="pointer"></div>
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
@@ -490,6 +538,7 @@
     let mobileSteering = false;
     let cameraHolderPosition = 0;
     let creeping = false;
+    let scores = [];
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -605,6 +654,79 @@
           document.querySelector(".swal-text").textContent = "You parked in a handicap spot.";
         }
       }, reason === "danger" ? 0 : 3000);
+    }
+
+    function finishGame(grade, score) {
+      document.querySelector(".final-banner").style.display = "block";
+
+      swal({
+        icon: `/images/grade_${grade}.png`,
+        title: `${score} out of 10`,
+        text: "You made it to the end!",
+        button: "Finish",
+        closeOnEnterKey: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false
+      }).then(() => {
+        stopAnimate = true;
+        audio.end();
+
+        user.set("points", (user.preferences.points || 0) + 1000);
+        user.set("parkingMaster", true);
+
+        document.querySelector(".final-banner").style.opacity = 1;
+
+        let finalScore = Math.round(scores.reduce((a, b) => a + b) / scores.length);
+
+        setTimeout(() => {
+          audio.sounds.percent.play();
+          let score = 0;
+          let timestamp = Date.now();
+          async function increment() {
+            if (Date.now() - timestamp >= 5) {
+              score++;
+              if (score > finalScore) {
+                audio.sounds.percent.pause();
+
+                await plugins.delay(500);
+                document.querySelector(".final-banner .final-text").style.opacity = 1;
+
+                await plugins.delay(1000);
+                document.querySelector(".final-banner .final-continue").style.opacity = 1;
+                document.querySelector(".final-banner .final-continue").onclick = async function() {
+                  document.querySelector(".final-banner .final-text").innerHTML = `<div id="subtext1"></div><div id="subtext2"></div>`;
+
+                  await plugins.type(document.querySelector("#subtext1"), "For making it to the final level, you're now officially considered a Parking Master.");
+                  await plugins.type(document.querySelector("#subtext2"), "Plus, we gave you 1,000 bonus points for your effort!");
+
+                  document.querySelector(".final-banner .final-continue").onclick = async function() {
+                    document.querySelector(".final-banner .final-continue").style = "opacity: 0; transition: none";
+                    document.querySelector(".final-banner .final-text").textContent = "";
+                    document.querySelector(".final-banner .final-continue").textContent = "Finish";
+
+                    await plugins.type(document.querySelector(".final-banner .final-score"), "Parking Master");
+                    await plugins.delay(1000);
+                    await plugins.type(document.querySelector(".final-banner .final-text"), "Thanks for playing.");
+
+                    await plugins.delay(1000);
+                    document.querySelector(".final-banner .final-continue").style = "opacity: 1";
+                    document.querySelector(".final-banner .final-continue").onclick = () => location.replace("/");
+                  };
+                };
+
+                return;
+              }
+
+              document.querySelector(".final-banner .final-score #value").textContent = score;
+            }
+
+            requestAnimationFrame(increment);
+            timestamp = Date.now();
+          }
+          increment();
+        }, 3000);
+      });
+      document.querySelector(".swal-modal").style = "animation: explode 1s !important";
     }
 
     function setLightBloom(id) {
@@ -772,6 +894,8 @@
         let text = score > 9 ? "Perfect job! You're an expert." : score > 6 ? "Great job! Keep it up." : score > 4 ? "Nice work, but you could do a little better." : score > 1 ? "Not terrible... But try to do better." : "Yikes.";
         let grade = score > 7 ? "A" : score > 4 ? "B" : "C";
         let points = 1;
+        let percentScore = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 110), 100), 0);
+        scores.push(percentScore);
 
         if (inBluespot) {
           points = 2;
@@ -798,7 +922,15 @@
 
         new Image().src = `/images/grade_${grade}.png`;
 
+        function finish() {
+          document.querySelector(".swal-modal").style.border = "";
+          user.set("points", (user.preferences.points || 0) + points);
+          loadLevel(currentLevel + 1);
+          if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+        }
+
         setTimeout(() => {
+          if (currentLevel == 20) return finishGame(grade, score);
           if (inPrize) {
             if (user.loggedIn && availableCars.filter(car => !user.preferences.cars.includes(car)).length > 0) {
               let ownedCars = availableCars.filter(car => !user.preferences.cars.includes(car));
@@ -813,17 +945,11 @@
                 closeOnEsc: false,
                 closeOnClickOutside: false
               }).then(() => {
-                document.querySelector(".swal-modal").style.border = "";
-
-                user.set("points", (user.preferences.points || 0) + points);
-
                 let cars = user.preferences.cars;
                 cars.push(car);
                 user.set("cars", cars);
 
-                loadLevel(currentLevel + 1);
-
-                if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+                finish();
               });
             } else {
               points = 50;
@@ -836,15 +962,7 @@
                 closeOnEnterKey: false,
                 closeOnEsc: false,
                 closeOnClickOutside: false
-              }).then(() => {
-                document.querySelector(".swal-modal").style.border = "";
-
-                user.set("points", (user.preferences.points || 0) + points);
-
-                loadLevel(currentLevel + 1);
-
-                if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
-              });
+              }).then(finish);
             }
           } else {
             swal({
@@ -855,15 +973,7 @@
               closeOnEnterKey: false,
               closeOnEsc: false,
               closeOnClickOutside: false
-            }).then(() => {
-              document.querySelector(".swal-modal").style.border = "";
-
-              user.set("points", (user.preferences.points || 0) + points);
-
-              loadLevel(currentLevel + 1);
-
-              if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
-            });
+            }).then(finish);
           }
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
           if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
@@ -960,117 +1070,14 @@
       });
     }
 
-    async function loadLevel(level) {
+    function loadLevel(level) {
       currentLevel = level;
+      document.title = "Parking Master Level " + level;
 
-      if (level == 20) {
-        const delay = ms => new Promise(res => setTimeout(res, ms));
-
-        stopAnimate = true;
-        scene.remove(ground);
-
-        document.title = "The Final Level";
-        document.querySelector(".banner").classList.remove("loading");
-        document.querySelector(".banner").style.transition = "opacity 2s ease-in";
-        document.querySelector(".banner").style.opacity = 1;
-        document.querySelector(".banner").innerHTML = "";
-
-        await delay(3000);
-        document.querySelector(".banner").innerHTML += `
-        <div>You made it to the final level.</div>
-        `;
-        await delay(3000);
-        document.querySelector(".banner").innerHTML += `
-        <div>That's impressive. But what happens now?</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>All of those 19 previous levels were actually just practice.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML += `
-        <div>This final level will be the real challenge.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>This time, you'll be put in a more realistic world,</div>
-        `;
-        await delay(2000);
-        document.querySelector(".banner").innerHTML += `
-        <div>with a more complex traffic system and parking lot.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>You'll have only 30 seconds to find your way to the parking space, and park the car.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>There will also be <span style="font-weight:bold">no retries</span> on this final level.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>If you crash, fail to park, or run out of time, you'll be returned to the main menu.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>Even if you end up parking, you will have to get a certain score in order to pass,</div>
-        `;
-        await delay(2000);
-        document.querySelector(".banner").innerHTML += `
-        <div>so make sure to park as best as possible.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>If you successfully park good enough and under 30 seconds,</div>
-        `;
-        await delay(2000);
-        document.querySelector(".banner").innerHTML += `
-        <div>then you'll officially be considered a Parking Master.</div>
-        `;
-        await delay(3000);
-        document.querySelector(".banner").innerHTML += `
-        <div>Plus, you'll get a huge prize.</div>
-        `;
-        await delay(4000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>Good luck.</div>
-        `;
-
-        loadEnv(level);
-        document.querySelector(".infobox-level #value").textContent = level;
-
-        await delay(5000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>READY?</div>
-        `;
-        await delay(3000);
-        document.querySelector(".banner").innerHTML = "";
-        document.querySelector(".banner").innerHTML += `
-        <div>GO</div>
-        `;
-        await delay(500);
-        document.querySelector(".banner").innerHTML = "";
-        resetEverything();
-        document.querySelector(".banner").style.transition = "none";
-        document.querySelector(".banner").style.opacity = 0;
-
-        return;
-      } else {
-        document.title = "Parking Master Level " + level;
-        tip();
-        document.querySelector(".banner").classList.add("loading");
-        document.querySelector(".banner").style.opacity = 1;
-        document.querySelector(".points #value").textContent = user.preferences.points;
-      }
+      tip();
+      document.querySelector(".banner").classList.add("loading");
+      document.querySelector(".banner").style.opacity = 1;
+      document.querySelector(".points #value").textContent = user.preferences.points;
 
       stopAnimate = true;
       scene.remove(ground);
