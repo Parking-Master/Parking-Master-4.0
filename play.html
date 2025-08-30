@@ -1074,6 +1074,8 @@
       currentLevel = level;
       document.title = "Parking Master Level " + level;
 
+      if (level == 19) document.querySelector(".infobox-description").textContent = "Park in the parking spot that has an arrow pointing at it, before the time runs out. Shift into park to finish.";
+
       tip();
       document.querySelector(".banner").classList.add("loading");
       document.querySelector(".banner").style.opacity = 1;
