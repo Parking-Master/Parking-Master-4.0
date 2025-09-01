@@ -466,7 +466,9 @@
           veered: false,
           veeredCount: 0,
           stopSignsPassed: true,
-          score: 0
+          score: 0,
+          controlScreen: new THREE.TextureLoader().load("/images/incoming_call.png"),
+          incomingCall: false
         }
       }
     };
@@ -782,6 +784,9 @@
           if (currentLevel === 1) {
             car.rotation.y += (Math.random() / 10) - .05;
           }
+          if (currentLevel === 3) {
+            car.rotation.y += (Math.random() / 10) - .05;
+          }
         };
         resetCarPosition();
 
@@ -843,7 +848,9 @@
           veered: false,
           veeredCount: 0,
           stopSignsPassed: true,
-          score: 0
+          score: 0,
+          controlScreen: testData[3].data.controlScreen,
+          incomingCall: false
         }
       }
     }
@@ -1097,6 +1104,12 @@
 
         const endPosition = new THREE.Vector3(85, 0, 2);
         if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
+
+        if (car.position.x > -45 && !testData[3].data.incomingCall) {
+          testData[3].data.incomingCall = true;
+          car.getObjectByName("Control_Screen").material.map = testData[3].data.controlScreen;
+          audio.sounds.ringtone.play();
+        }
       }
 
       if (currentGear === "reverse" && displayReverseCam && frame % 4 === 0) {

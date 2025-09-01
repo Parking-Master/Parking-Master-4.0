@@ -171,7 +171,8 @@ audio.sounds = {
   "horn": AudioWrapper("/sounds/horn.mp3"),
   "drumroll": AudioWrapper("/sounds/drum_roll.mp3"),
   "tap": AudioWrapper("/sounds/mobile_tap.mp3"),
-  "percent": AudioWrapper("/sounds/percent.mp3")
+  "percent": AudioWrapper("/sounds/percent.mp3"),
+  "ringtone": AudioWrapper("/sounds/ringtone.mp3")
 };
 
 document.addEventListener("touchstart", () => {
