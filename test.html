@@ -328,6 +328,47 @@
       .swal-overlay {
         z-index: 100000;
       }
+      .swal-content.final {
+        padding: 0 60px;
+      }
+      .swal-content.final {
+        padding: 0 60px;
+      }
+      .line .score.score-right {
+        text-align: right;
+        float: right;
+      }
+      .line .score.score-left {
+        text-align: left;
+        float: left;
+      }
+      .line .score.score-left {
+        text-align: left;
+        float: left;
+      }
+      .line {
+        display: block;
+        width: 100%;
+        height: 40px;
+      }
+      .line .type {
+        width: 140px;
+        display: inline-block;
+      }
+      .line .score-bar {
+        width: 135px;
+        height: 4px;
+        border: .5px solid #ddd;
+        right: 100px;
+        position: absolute;
+        margin-top: 6px;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .line .score-bar-value {
+        height: 100%;
+        background: #000;
+      }
     </style>
   </head>
   <body>
@@ -424,6 +465,8 @@
         }, 4000);
         return;
       } else if (currentLevel === 3) {
+        stopAnimate = true;
+
         let veeredDecrement = testData["3"].data.veeredCount * 200;
         let stopSignsDecrement = testData["3"].data.stopSignsPassed ? 400 : 0;
         if (veeredDecrement > 200) veeredDecrement *= 2;
@@ -433,9 +476,105 @@
         let precisionDecrement = 500 - Math.round((Math.max(2 - highestDistance, 0) * (500 / 4)) + (Math.max(2 + lowestDistance, 0) * (500 / 4)));
 
         testData[3].data.score = 1000 - Math.min(veeredDecrement + stopSignsDecrement + precisionDecrement, 1000);
+
+        document.querySelector(".start-banner").style.backgroundImage = "url(/images/badge_awareness.gif)";
+        document.querySelector(".start-banner").style.opacity = 1;
+        mobileUI.startBannerUp();
+        setTimeout(() => {
+          loadLevel(currentLevel + 1);
+        }, 3000);
+        setTimeout(() => {
+          document.querySelector(".start-banner").style.opacity = 0;
+          mobileUI.startBannerDown();
+        }, 4000);
+        return;
+      } else if (currentLevel === 4) {
+        stopAnimate = true;
+
+        let stopSignsDecrement = testData["4"].data.stopSignsPassed ? 500 : 0;
+        let speedLimitDecrement = testData["4"].data.obeyedSpeedLimit ? 0 : 300;
+        let constructionDecrement = testData["4"].data.obeyedConstruction ? 0 : 500;
+        let tracksDecrement = testData["4"].data.stoppedOnTracks ? 200 : 0;
+
+        testData[4].data.score = 1000 - Math.min(stopSignsDecrement + speedLimitDecrement + constructionDecrement + tracksDecrement, 1000);
+
+        document.querySelector(".start-banner").style.backgroundImage = "url(/images/badge_knowledge.gif)";
+        document.querySelector(".start-banner").style.opacity = 1;
+        mobileUI.startBannerUp();
+        setTimeout(() => {
+          document.querySelector(".start-banner").style.opacity = 0;
+          mobileUI.startBannerDown();
+          finishTest();
+        }, 5000);
+        return;
       }
 
       loadLevel(currentLevel + 1);
+    }
+
+    function finishTest() {
+      crashed = true;
+      countingDown = false;
+      lockPointer = false;
+      exitControlLock();
+      if (document.exitPointerLock) document.exitPointerLock();
+      audio.end();
+      stopAnimate = true;
+
+      document.querySelector(".banner").classList.remove("loading");
+      document.querySelector(".banner").style.opacity = 1;
+
+      let lane_precision = testData[1].data.score;
+      let parking_precision = testData[2].data.score;
+      let awareness = testData[3].data.score;
+      let road_knowledge = testData[4].data.score;
+      let score = Math.round((lane_precision + parking_precision + awareness + road_knowledge) / 40);
+
+      let content = document.createElement("div");
+      content.innerHTML = `
+      <div>Driving Test results</div>
+      <br>
+      <div class="line" id="lane_precision">
+        <div class="score score-left"><span class="type">Lane precision</span> <span class="value">${lane_precision}</span></div>
+        <div class="score-bar">
+          <div class="score-bar-value" style="width: ${lane_precision / 10}%"></div>
+        </div>
+        <div class="score score-right">1000</div>
+      </div>
+      <div class="line" id="parking_precision">
+        <div class="score score-left"><span class="type">Parking precision</span> <span class="value">${parking_precision}</span></div>
+        <div class="score-bar">
+          <div class="score-bar-value" style="width: ${parking_precision / 10}%"></div>
+        </div>
+        <div class="score score-right">1000</div>
+      </div>
+      <div class="line" id="awareness">
+        <div class="score score-left"><span class="type">Awareness</span> <span class="value">${awareness}</span></div>
+        <div class="score-bar">
+          <div class="score-bar-value" style="width: ${awareness / 10}%"></div>
+        </div>
+        <div class="score score-right">1000</div>
+      </div>
+      <div class="line" id="road_knowledge">
+        <div class="score score-left"><span class="type">Road Knowledge</span> <span class="value">${road_knowledge}</span></div>
+        <div class="score-bar">
+          <div class="score-bar-value" style="width: ${road_knowledge / 10}%"></div>
+        </div>
+        <div class="score score-right">1000</div>
+      </div>
+      <br>
+      <div style="font-size: 60px">${score}%</div>
+      `;
+      swal({
+        content: content,
+        button: "Finish",
+        closeOnEnterKey: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false
+      }).then(() => {
+        location.replace("/");
+      });
+      document.querySelector(".swal-content").classList.add("final");
     }
 
     let currentLevel = 1;
@@ -470,7 +609,18 @@
           controlScreen: new THREE.TextureLoader().load("/images/incoming_call.png"),
           incomingCall: false
         }
-      }
+      },
+      "4": {
+        time: 60,
+        objective: "Challenge 4: Finally, we will test your driving knowledge. Follow the instructions on the road.",
+        data: {
+          score: 0,
+          stopSignsPassed: true,
+          obeyedConstruction: false,
+          obeyedSpeedLimit: true,
+          stoppedOnTracks: false
+        }
+      },
     };
     let car = null;
     let ground = null;
@@ -853,6 +1003,15 @@
           incomingCall: false
         }
       }
+      if (currentLevel === 4) {
+        testData["4"].data = {
+          score: 0,
+          stopSignsPassed: true,
+          obeyedConstruction: false,
+          obeyedSpeedLimit: true,
+          stoppedOnTracks: false
+        }
+      }
     }
 
     function updatePauseMenu() {
@@ -1090,7 +1249,7 @@
       } else if (currentLevel === 3) {
         testData["3"].data.centerlinerecords.push(car.position.z);
 
-        if ((car.position.z > 2.8 || car.position.z < 0.9)) {
+        if (car.position.z > 2.8 || car.position.z < 0.9) {
           if (!testData[3].data.veered) {
             testData[3].data.veered = true;
             testData[3].data.veeredCount++;
@@ -1110,6 +1269,20 @@
           car.getObjectByName("Control_Screen").material.map = testData[3].data.controlScreen;
           audio.sounds.ringtone.play();
         }
+      } else if (currentLevel === 4) {
+        if (car.position.x > -53 && car.position.x < -45 && car.position.z > -3.5 && car.position.z < 2) {
+          testData[4].data.obeyedConstruction = true;
+        }
+
+        const stopPosition = new THREE.Vector3(-6, 0, 1);
+        if (car.position.distanceTo(stopPosition) < 8 && physics.env.speedMPH < 0.5) testData[4].data.stopSignsPassed = false;
+
+        const endPosition = new THREE.Vector3(85, 0, 2);
+        if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
+
+        if (physics.env.speedMPH > 35) testData[4].data.obeyedSpeedLimit = false;
+
+        if (car.position.x > 20 && car.position.x < 25 && physics.env.speedMPH < 1) testData[4].data.stoppedOnTracks = true;
       }
 
       if (currentGear === "reverse" && displayReverseCam && frame % 4 === 0) {
