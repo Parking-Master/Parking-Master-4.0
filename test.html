@@ -447,9 +447,8 @@
 
     function end(score) {
       if (currentLevel === 1) {
-        let lowestDistance = Math.min(...testData["1"].data.centerlinerecords);
-        let highestDistance = Math.max(...testData["1"].data.centerlinerecords);
-        let score = Math.round((Math.max(2 - highestDistance, 0) * (500 / 2)) + (Math.max(2 + lowestDistance, 0) * (500 / 2)));
+        let center = -1.526;
+        let score = Math.round(Math.min(Math.max(1000 - (Math.pow(testData[1].data.centerlinerecords.length / Math.max(testData[1].data.centerlinerecords.filter(pos => pos > center - 0.3 && pos < center + 0.3).length, 1), 3) * 36) - 36, 0), 1000));
         testData["1"].data.score = score;
       } else if (currentLevel === 2) {
         testData["2"].data.score = score;
@@ -1333,23 +1332,23 @@
     };
 
     document.addEventListener("keydown", function(event) {
-      if (event.key === "ArrowUp" && !event.repeat) {
+      if ((event.key === "ArrowUp" || event.key === "w") && !event.repeat) {
         if (controlLock === "Shifter") {
           shift("up");
         } else {
           driveStart();
         }
       }
-      if (event.key === "ArrowDown" && !event.repeat) {
+      if ((event.key === "ArrowDown" || event.key === "s") && !event.repeat) {
         if (controlLock === "Shifter") {
           shift("down");
         }
       }
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft" || event.key === "a") {
         manualSteering = true;
         new Tween(options.carHeadingIncrement, options.carHeadingMaxIncrement, 250, "in", (x) => { options.carHeadingIncrement = x }).start();
       }
-      if (event.key === "ArrowRight") {
+      if (event.key === "ArrowRight" || event.key === "d") {
         manualSteering = true;
         new Tween(options.carHeadingIncrement, -options.carHeadingMaxIncrement, 250, "in", (x) => { options.carHeadingIncrement = x }).start();
       }
@@ -1374,14 +1373,14 @@
     });
 
     document.addEventListener("keyup", function(event) {
-      if (event.key === "ArrowUp") {
+      if (event.key === "ArrowUp" || event.key === "w") {
         driveStop();
       }
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft" || event.key === "a") {
         manualSteering = false;
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }
-      if (event.key === "ArrowRight") {
+      if (event.key === "ArrowRight" || event.key === "d") {
         manualSteering = false;
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }

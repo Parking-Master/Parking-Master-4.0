@@ -31,34 +31,49 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   let uuid = null;
+
   if (socket.handshake.auth.uuid) {
     uuid = socket.handshake.auth.uuid;
   } else {
     uuid = uuidv4();
   }
-  console.log(uuid)
+
+  let selectedCar = "Honda_Civic_Sport_Touring";
+  if (socket.handshake.auth.car) {
+    selectedCar = socket.handshake.auth.car;
+  }
+  console.log(uuid, selectedCar)
 
   let entry = {
+    disconnected: false,
+    position: null,
     car: {
-      position: [0, 0, 0],
+      type: selectedCar,
+      position: [0, -1000, 0],
       rotation: [0, 0, 0],
       speedMS: 0,
       heading: 0,
-      braking: false
+      braking: false,
+      crashed: false
     }
   };
 
   players[uuid] = entry;
+  players[uuid].position = Object.keys(players).indexOf(uuid) + 1;
 
   socket.on("updatePlayer", (newEntry) => {
     players[uuid] = newEntry;
     io.emit("updateAllPlayers", JSON.stringify(players));
   });
 
-  socket.emit("playerInit", uuid);
+  socket.emit("playerInit", uuid, players[uuid].position);
+  io.emit("updateAllPlayers", JSON.stringify(players));
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    players[uuid].disconnected = true;
+    setTimeout(() => {
+      if (players[uuid].disconnected) delete players[uuid];
+    }, 10000);
   });
 });
 

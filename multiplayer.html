@@ -6,7 +6,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Parking Master Level 1</title>
+    <title>Parking Master Round 1</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100&display=swap");
       @keyframes implode {
@@ -405,7 +405,7 @@
     <script src="/js/MobileUI.js"></script>
     <script src="/js/user.js"></script>
     <script src="/js/plugins.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/socketio/socket.io/client-dist/socket.io.js"></script>
+    <script src="/js/socket.io.js"></script>
     <div class="ui">
       <img class="vignette" src="/images/high_quality_graphics/vignette.png">
       <div class="banner loading" style="opacity: 1"></div>
@@ -418,10 +418,10 @@
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
         <p class="infobox-header">Objective</p>
-        <p class="infobox-level">Level <span id="value">1</span> / 20</p>
+        <p class="infobox-level">Round <span id="value">1</span> / 3</p>
         <p class="infobox-timer">0:00</p>
         <br>
-        <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
+        <p class="infobox-description">Park in one of the two available spots and shift into park before the other player does! Careful not to crash.</p>
       </div>
       <div class="speed"><span id="value">0</span> MPH</div>
       <div class="settings" onclick="togglePause()" ontouchstart="togglePause()"><i class="fa fa-cog" style="pointer-events: none !important"></i></div>
@@ -443,15 +443,21 @@
     let currentPlayer = null;
     let previousHeading = 0;
     let otherCarSpeedMS = 0;
+    let players = [];
+    let myPosition = null;
 
     function updatePlayer() {
       let entry = {
+        disconnected: false,
+        position: myPosition,
         car: {
+          type: selectedCar,
           position: [car.position.x, car.position.y, car.position.z],
           rotation: [car.rotation.x, car.rotation.y, car.rotation.z],
           speedMS: physics.env.speedMS,
           heading: physics.env.heading,
-          braking: braking
+          braking: braking,
+          crashed: crashed
         }
       };
       socket.emit("updatePlayer", entry);
@@ -519,11 +525,8 @@
     let otherCar = null;
     let ground = null;
     let carColliders = [];
-    let spotDistances = [];
-    let spotDistancesBlue = [];
-    let spotDistancesMystery = [];
-    let spotDistancesHandicap = [];
-    let spotDistancesPrize = [];
+    let spotDistances1 = [];
+    let spotDistances2 = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -674,6 +677,8 @@
           document.querySelector(".swal-text").textContent = "You parked in a handicap spot.";
         }
       }, reason === "danger" ? 0 : 3000);
+
+      updatePlayer();
     }
 
     function finishGame(grade, score) {
@@ -887,16 +892,10 @@
       if (document.exitPointerLock) document.exitPointerLock();
       lockPointer = false;
 
-      let inSpot = spotDistances.filter(x => x < 2).length === 4;
-      let inBluespot = spotDistancesBlue.filter(x => x < 2).length === 4;
-      let inMystery = spotDistancesMystery.filter(x => x < 2).length === 4;
-      let inHandicap = spotDistancesHandicap.filter(x => x < 2).length === 4;
-      let inPrize = spotDistancesPrize.filter(x => x < 2).length === 4;
-      let mysterySpot = spotDistancesMystery.filter(x => x < 2);
-      if (inSpot || inBluespot || inMystery || inHandicap || inPrize) {
-        if (inHandicap) return gameOver("handicap");
-
-        const spotDistancesTemp = inSpot ? spotDistances : inBluespot ? spotDistancesBlue : inMystery ? mysterySpot : spotDistancesPrize;
+      let inSpot1 = spotDistances1.filter(x => x < 2).length === 4;
+      let inSpot2 = spotDistances2.filter(x => x < 2).length === 4;
+      if (inSpot1 || inSpot2) {
+        const spotDistancesTemp = inSpot1 ? spotDistances1 : spotDistances2;
         countingDown = false;
         audio.sounds.drumroll.play();
 
@@ -914,31 +913,6 @@
         let text = score > 9 ? "Perfect job! You're an expert." : score > 6 ? "Great job! Keep it up." : score > 4 ? "Nice work, but you could do a little better." : score > 1 ? "Not terrible... But try to do better." : "Yikes.";
         let grade = score > 7 ? "A" : score > 4 ? "B" : "C";
         let points = 1;
-        let percentScore = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 110), 100), 0);
-        scores.push(percentScore);
-
-        if (inBluespot) {
-          points = 2;
-          text = "You parked in a bluespot. You earned extra points!";
-        }
-
-        if (inMystery) {
-          document.querySelector(".swal-text").textContent = "This mystery spot was...";
-
-          let number = Math.floor(Math.random() * 3);
-          if (number === 0) {
-            return setTimeout(() => {
-              gameOver("danger");
-            }, 4000);
-          } else if (number === 1) {
-            points = 10;
-            text = "You parked in a special spot!";
-          } else if (number === 0) {
-            inSpot = true;
-            inBluespot = true;
-            inMystery = true;
-          }
-        }
 
         new Image().src = `/images/grade_${grade}.png`;
 
@@ -950,54 +924,16 @@
         }
 
         setTimeout(() => {
-          if (currentLevel == 20) return finishGame(grade, score);
-          if (inPrize) {
-            if (user.loggedIn && availableCars.filter(car => !user.preferences.cars.includes(car)).length > 0) {
-              let ownedCars = availableCars.filter(car => !user.preferences.cars.includes(car));
-              let car = ownedCars[Math.floor(Math.random() * ownedCars.length)];
-
-              swal({
-                icon: `/images/cars/${car}.png`,
-                title: `${score} out of 10`,
-                text: `You won a free car! Claim your new ${car.replace(/_/g, " ")} any time from the shop.`,
-                button: "Next level",
-                closeOnEnterKey: false,
-                closeOnEsc: false,
-                closeOnClickOutside: false
-              }).then(() => {
-                let cars = user.preferences.cars;
-                cars.push(car);
-                user.set("cars", cars);
-
-                finish();
-              });
-            } else {
-              points = 50;
-
-              swal({
-                icon: `/images/grade_${grade}.png`,
-                title: `${score} out of 10`,
-                text: `You earned +${points} points!`,
-                button: "Next level",
-                closeOnEnterKey: false,
-                closeOnEsc: false,
-                closeOnClickOutside: false
-              }).then(finish);
-            }
-          } else {
-            swal({
-              icon: `/images/grade_${grade}.png`,
-              title: `${score} out of 10`,
-              text: `${text} +${points} points`,
-              button: "Next level",
-              closeOnEnterKey: false,
-              closeOnEsc: false,
-              closeOnClickOutside: false
-            }).then(finish);
-          }
+          swal({
+            icon: `/images/grade_${grade}.png`,
+            title: `${score} out of 10`,
+            text: `${text} +${points} points`,
+            button: "Next level",
+            closeOnEnterKey: false,
+            closeOnEsc: false,
+            closeOnClickOutside: false
+          }).then(finish);
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
-          if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
-          if ((inMystery && points >= 10) || inPrize) document.querySelector(".swal-modal").style.border = "5px solid gold";
         }, 4000);
 
         return true;
@@ -1067,16 +1003,16 @@
     }
 
     function loadEnv(level) {
-      new THREE.GLTFLoader().load(`/models/parking_lots/lvl${level}.glb`, function(gltf) {
+      new THREE.GLTFLoader().load(`/models/parking_lots/multiplayer${level}.glb`, function(gltf) {
         ground = gltf.scene;
 
         let scale = 0.33;
-        let spawner = ground.getObjectByName("Spawner");
+        let spawner = ground.getObjectByName("Spawner" + myPosition);
         ground.scale.set(scale, scale, scale);
 
         resetCarPosition = function() {
           car.position.set(spawner.position.x * scale, spawner.position.y * scale, spawner.position.z * scale);
-          car.rotation.copy(ground.getObjectByName("Spawner").rotation);
+          car.rotation.copy(spawner.rotation);
         };
         resetCarPosition();
 
@@ -1096,9 +1032,7 @@
 
     function loadLevel(level) {
       currentLevel = level;
-      document.title = "Parking Master Level " + level;
-
-      if (level == 19) document.querySelector(".infobox-description").textContent = "Park in the parking spot that has an arrow pointing at it, before the time runs out. Shift into park to finish.";
+      document.title = "Parking Master Round " + level;
 
       tip();
       document.querySelector(".banner").classList.add("loading");
@@ -1258,9 +1192,9 @@
       return a.map((v, i) => lerp(v, b[i], t));
     }
 
-    let targetPosition = [0,-1000,0];
-    let targetRotation = [0,0,0];
-    let lerpAlpha = 0.4; // 0 < lerpAlpha < 1. Higher is faster, lower is smoother
+    let targetPosition = [0, -1000, 0];
+    let targetRotation = [0, 0, 0];
+    let lerpAlpha = 0.5;
 
     function updateOtherCar() {
       if (!otherCar) return;
@@ -1359,11 +1293,8 @@
         }
 
         if (ground && carColliders.length > 0 && frame % 2 === 0) {
-          const spotDistancesMysteryTemp = [];
-          const spotDistancesBlueTemp = [];
-          const spotDistancesHandicapTemp = [];
-          const spotDistancesPrizeTemp = [];
-          const spotDistancesTemp = [];
+          const spotDistances1Temp = [];
+          const spotDistances2Temp = [];
           ground.traverse(wallPoint => {
             const wallPointPosition = wallPoint.getWorldPosition(new THREE.Vector3());
 
@@ -1390,25 +1321,16 @@
             }
 
             if (wallPoint.name.startsWith("Corner")) {
-              if (wallPoint.name.includes("Bluespot")) {
-                spotDistancesBlueTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
-              } else if (wallPoint.name.includes("Mystery")) {
-                spotDistancesMysteryTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
-              } else if (wallPoint.name.includes("Handicap")) {
-                spotDistancesHandicapTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
-              } else if (wallPoint.name.includes("Prize")) {
-                spotDistancesPrizeTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              if (wallPoint.name.includes("Spot1")) {
+                spotDistances1Temp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               } else {
-                spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+                spotDistances2Temp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
               }
             }
           });
 
-          spotDistancesBlue = spotDistancesBlueTemp;
-          spotDistancesMystery = spotDistancesMysteryTemp;
-          spotDistancesHandicap = spotDistancesHandicapTemp;
-          spotDistancesPrize = spotDistancesPrizeTemp;
-          spotDistances = spotDistancesTemp;
+          spotDistances1 = spotDistances1Temp;
+          spotDistances2 = spotDistances2Temp;
         }
       }
       if (!mobile || (mobile && !useMobileUI)) physics.env.heading = Math.max(Math.min(physics.env.heading + (options.carHeadingIncrement / physics.env.wheelTurnRatio), 35), -35);
@@ -1643,8 +1565,6 @@
           car.getObjectByName("Exterior_Shell").material.envMap = envMap;
         });
 
-        loadEnv(currentLevel);
-
         controlScreenMap = new THREE.TextureLoader().load("/images/control_screen.png");
         car.getObjectByName("Mirrors").material.envMap = cubeRenderTarget.texture;
         car.getObjectByName("Control_Screen").material = new THREE.MeshBasicMaterial({ map: controlScreenMap });
@@ -1679,27 +1599,25 @@
         renderer.render(scene, reverseCamera);
         renderer.setRenderTarget(null);
 
-        animate();
-        audio.start();
-
         setTimeout(() => {
           document.querySelector(".points #value").textContent = user.preferences.points;
 
-          presets.startTimestamp = Date.now();
           document.querySelector(".banner").style.opacity = 0;
         }, 2000);
 
-        socket = io("http://192.168.68.52:3000", {
+        socket = io("http://192.168.68.87:3000", {
           auth: {
-            uuid: localStorage["multiplayerUUID"]
+            uuid: localStorage["multiplayerUUID"],
+            car: selectedCar
           }
         });
 
-        socket.on("updateAllPlayers", (players) => {
-          players = JSON.parse(players);
+        socket.on("updateAllPlayers", (playersArray) => {
+          players = JSON.parse(playersArray);
           delete players[currentPlayer];
+
           let otherPlayer = Object.values(players)[0];
-          if (!otherPlayer) return;
+          if (!otherPlayer || !otherCar) return;
 
           if (otherCar.position.y == -1000) otherCar.position.set(otherPlayer.car.position[0], otherPlayer.car.position[1], otherPlayer.car.position[2]);
 
@@ -1718,48 +1636,11 @@
           otherCarSpeedMS = otherPlayer.car.speedMS;
         });
 
-        socket.on("playerInit", (uuid) => {
+        socket.on("playerInit", (uuid, position) => {
+          myPosition = position;
           currentPlayer = uuid;
           localStorage.setItem("multiplayerUUID", uuid);
         });
-      });
-
-      new THREE.GLTFLoader().load(`/models/multiplayer_cars/${selectedCar}.glb`, function(gltf) {
-        otherCar = gltf.scene;
-
-        otherCar.traverse(child => {
-          if (child.isMesh) {
-            if (!child.name.includes("Light_Bloom")) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-            }
-            if (child.material) child.material.vertexColors = false;
-
-            if (child.geometry) {
-              child.geometry.computeBoundingSphere();
-              if (child.material.map) {
-                child.material.map.needsUpdate = true;
-              }
-              child.material.needsUpdate = true; 
-            }
-          }
-        });
-
-        otherCar.getObjectByName("Wheel_FL").rotation.order = "YXZ";
-        otherCar.getObjectByName("Wheel_FR").rotation.order = "YXZ";
-        otherCar.getObjectByName("Wheel_RL").rotation.order = "YXZ";
-        otherCar.getObjectByName("Wheel_RR").rotation.order = "YXZ";
-
-        new THREE.TextureLoader().load("/images/sky.png", function(texture) {
-          let pmremGenerator = new THREE.PMREMGenerator(renderer);
-          let envMap = pmremGenerator.fromEquirectangular(texture).texture;
-          otherCar.getObjectByName("Exterior_Shell").material.envMap = envMap;
-        });
-
-        // carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
-
-        otherCar.position.y = -1000;
-        scene.add(otherCar);
       });
     }
 
@@ -1828,55 +1709,72 @@
         });
       }
     }
+
+    function loadOtherVehicle(type) {
+      new THREE.GLTFLoader().load(`/models/multiplayer_cars/${type}.glb`, function(gltf) {
+        otherCar = gltf.scene;
+
+        otherCar.traverse(child => {
+          if (child.isMesh) {
+            if (!child.name.includes("Light_Bloom")) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+            if (child.material) child.material.vertexColors = false;
+
+            if (child.geometry) {
+              child.geometry.computeBoundingSphere();
+              if (child.material.map) {
+                child.material.map.needsUpdate = true;
+              }
+              child.material.needsUpdate = true; 
+            }
+          }
+        });
+
+        otherCar.getObjectByName("Wheel_FL").rotation.order = "YXZ";
+        otherCar.getObjectByName("Wheel_FR").rotation.order = "YXZ";
+        otherCar.getObjectByName("Wheel_RL").rotation.order = "YXZ";
+        otherCar.getObjectByName("Wheel_RR").rotation.order = "YXZ";
+
+        new THREE.TextureLoader().load("/images/sky.png", function(texture) {
+          let pmremGenerator = new THREE.PMREMGenerator(renderer);
+          let envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          otherCar.getObjectByName("Exterior_Shell").material.envMap = envMap;
+        });
+
+        // carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
+
+        otherCar.position.y = -1000;
+        scene.add(otherCar);
+
+        beginCountdown();
+      });
+    }
+
+    function beginCountdown() {
+      updatePlayer();
+      audio.start();
+      animate();
+      presets.startTimestamp = Date.now();
+    }
+
+    let playerConnected = false;
+    let polling = setInterval(() => {
+      if (socket && Object.values(players).length > 0 && myPosition) {
+        if (!playerConnected) {
+          playerConnected = true;
+          clearInterval(polling);
+
+          let otherPlayer = Object.values(players)[0];
+          if (!otherPlayer) return;
+
+          loadEnv(currentLevel);
+          loadOtherVehicle(otherPlayer.car.type);
+        }
+      }
+    }, 1000);
   </script>
     <script src="/js/CarSelector.js"></script>
   </body>
 </html>
-
-<!-- <!DOCTYPE html>
-<html>
-<head>
-  <title>Basic Chat</title>
-  <style>
-    body { margin:0; padding:20px; font-family:sans-serif; }
-    ul#messages { list-style-type:none; border:1px solid #ddd; padding:10px; height:300px; overflow-y:auto; margin-bottom:10px;}
-    #messages li { padding:7px 12px; border-bottom:1px solid #eee;}
-    #messages li:last-child { border-bottom: none; }
-    form { display:flex; }
-    input[type="text"] { flex:1; padding:10px; font-size:14px; }
-    button { padding:10px 20px; background:#4CAF50; color:#fff; border:none; cursor:pointer; }
-    button:hover { background: #388e3c; }
-  </style>
-</head>
-<body>
-  <h2>Chat</h2>
-  <ul id="messages"></ul>
-  <form id="form" autocomplete="off">
-    <input id="input" type="text" placeholder="Type your message..." autocomplete="off" />
-    <button>Send</button>
-  </form>
-  <script src="https://cdn.jsdelivr.net/gh/socketio/socket.io/client-dist/socket.io.js"></script>
-  <script>
-    const socket = io("http://localhost:3000");
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const messages = document.getElementById('messages');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const msg = input.value.trim();
-      if (msg) {
-        socket.emit('chat message', msg);
-        input.value = '';
-      }
-    });
-
-    socket.on('chat message', (msg) => {
-      const item = document.createElement('li');
-      item.textContent = msg;
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
-    });
-  </script>
-</body>
-</html> -->
