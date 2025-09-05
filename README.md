@@ -1,11 +1,11 @@
 ## :exclamation: Release date
 Parking Master 4.0 will officially be released on September 7th! Here's what we've done so far:
-- Added 16 out of 20 fun/challenging levels
+- Added all 20 fun levels
 - Added new **High Quality Graphics** toggle in settings
 - Optimized performance so insanely good that you won't believe it
 - Added a new scoring system for each time you park
 - Added the log in, sign up, settings, all users, and your profile pages
-- Almost done adding the new **Test mode** that evaluates all of your *real* driving skills based off of:
+- Added the new **Test mode** that evaluates all of your *real* driving skills based off of:
   - Precision
   - Awareness
   - Knowledge
@@ -19,8 +19,6 @@ Parking Master 4.0 will officially be released on September 7th! Here's what we'
 
 And here's what we still need to do before the game is finished:
 - Add the multiplayer mode
-- Finish the test mode
-- Add 4 more levels
 - Fix a few minor bugs
 
 
