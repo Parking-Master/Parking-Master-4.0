@@ -634,13 +634,14 @@
           closeOnClickOutside: false
         }).then(result => {
           if (!result) {
+            user.set("points", Math.max((user.preferences.points || 0) - 2, 0));
             resetEverything();
           } else {
             location.replace("/");
           }
         });
         document.querySelector(".swal-button").style.border = "2px solid gold";
-        // document.querySelector(".swal-button").disabled = "disabled";
+        if (user.preferences.points < 2) document.querySelector(".swal-button").disabled = "disabled";
 
         if (reason === "outofbounds") {
           document.querySelector(".swal-text").textContent = "You exited the parking lot.";
@@ -1109,6 +1110,7 @@
       countingDown = true;
       document.querySelector(".banner").style.opacity = 0;
       mobileUI.reset();
+      document.querySelector(".points #value").textContent = user.preferences.points;
     }
 
     function updatePauseMenu() {
@@ -1420,7 +1422,7 @@
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
         car.rotateY(physics.env.currentHeading * 1.5 * delta * shiftFactor * driveFactor);
 
-        if (!mobileSteering) physics.env.heading = physics.env.heading - ((physics.env.heading / 10) * (physics.env.speedMS / 18));
+        if (!mobileSteering) physics.env.heading += physics.calculateHeadingReset(physics.env.heading, physics.env.speedMS);
 
         car.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);
         car.getObjectByName("Wheel_FR").rotation.y = THREE.MathUtils.degToRad(physics.env.heading);

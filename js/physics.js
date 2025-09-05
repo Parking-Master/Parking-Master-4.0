@@ -66,6 +66,17 @@ physics = {
   calculateDriftSpeed: function(turnRadius, frictionCoefficient) {
     return Math.sqrt(frictionCoefficient * 9.81 * turnRadius);
   },
+  calculateHeadingReset: function(a, v) {
+    const resetStrength = 0.8;
+    const maxResetRate = Math.min(Math.max(v, 15), 30);
+
+    let correctionAngularVelocity = -resetStrength * a * v;
+
+    if (correctionAngularVelocity > maxResetRate) correctionAngularVelocity = maxResetRate;
+    if (correctionAngularVelocity < -maxResetRate) correctionAngularVelocity = -maxResetRate;
+
+    return correctionAngularVelocity / 30;
+  },
   update: function() {
     const now = performance.now();
     const dt = (now - physics.timestamp) / 1000;

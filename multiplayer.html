@@ -6,8 +6,9 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Parking Master Driving Test</title>
+    <title>Parking Master Level 1</title>
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100&display=swap");
       @keyframes implode {
         0% {
           transform: scale(1);
@@ -79,6 +80,7 @@
         margin-top: -18px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-align: center;
@@ -91,6 +93,7 @@
       }
       #NotiflixNotifyWrap {
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-shadow: 1px 1px #333;
@@ -110,9 +113,9 @@
         top: 10px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
-        text-align: left;
         color: #fff;
         padding: 5px 10px;
         z-index: 9999;
@@ -144,6 +147,7 @@
         bottom: 10px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-align: center;
@@ -180,6 +184,7 @@
         bottom: 10px;
         background: transparent;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         background: rgba(255, 255, 255, 0.1);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
         text-align: center;
@@ -242,7 +247,7 @@
         background-color: #000;
         opacity: 0;
         pointer-events: none;
-        z-index: 10000;
+        z-index: 10100;
         transition: opacity 1s;
       }
       .banner.loading {
@@ -252,7 +257,38 @@
         background-repeat: no-repeat;
         background-color: #fff !important;
       }
-      .start-banner {
+      .final-banner {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        background-color: #000;
+        opacity: 0;
+        z-index: 10100;
+        color: #fff;
+        font-size: 60px;
+        font-family: "Montserrat", Arial;
+        align-content: center;
+        text-align: center;
+        transition: opacity 3s ease-in-out;
+        display: none;
+      }
+      .tip {
+        position: absolute;
+        left: 10vw;
+        bottom: 3vw;
+      }
+      .tip .header {
+        font-size: 3vh;
+      }
+      .tip .text {
+        font-size: 2vh;
+      }
+      .ui .vignette {
         position: absolute;
         width: 100%;
         height: 100%;
@@ -261,15 +297,11 @@
         bottom: 0;
         right: 0;
         margin: 0;
-        background-color: #fff;
-        opacity: 1;
-        pointer-events: none;
-        transition: opacity 1s;
-        background-image: url(/images/test.png);
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-        z-index: 10001;
+        padding: 0;
+        opacity: 0.6;
+        pointer-events: none !important;
+        display: none;
+        z-index: 10;
       }
       .ui .pause-menu {
         position: absolute;
@@ -328,51 +360,37 @@
       .swal-overlay {
         z-index: 100000;
       }
-      .swal-content.final {
-        padding: 0 60px;
+      .final-banner .final-text {
+        font-size: 20px;
+        opacity: 0;
+        transition: opacity 1s;
+        width: 500px;
+        margin: auto;
+        margin-top: 10px;
       }
-      .swal-content.final {
-        padding: 0 60px;
+      .final-banner .final-text div {
+        margin-bottom: 20px;
       }
-      .line .score.score-right {
-        text-align: right;
-        float: right;
+      .final-banner .final-continue {
+        padding: 15px 25px;
+        background: #ddd;
+        text-align: center;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        transition: opacity 1s, background .1s, transform .15s ease-out;
+        opacity: 0;
       }
-      .line .score.score-left {
-        text-align: left;
-        float: left;
+      .final-banner .final-continue:hover {
+        background: #bbb;
+        cursor: default;
       }
-      .line .score.score-left {
-        text-align: left;
-        float: left;
-      }
-      .line {
-        display: block;
-        width: 100%;
-        height: 40px;
-      }
-      .line .type {
-        width: 140px;
-        display: inline-block;
-      }
-      .line .score-bar {
-        width: 135px;
-        height: 4px;
-        border: .5px solid #ddd;
-        right: 100px;
-        position: absolute;
-        margin-top: 6px;
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .line .score-bar-value {
-        height: 100%;
-        background: #000;
+      .final-banner .final-continue:active {
+        transform: scale(0.9);
       }
     </style>
   </head>
   <body>
-    <div class="start-banner"></div>
     <script src="/js/three.js"></script>
     <script src="/js/GLTFLoader.js"></script>
     <script src="/js/PointerLockControls.js"></script>
@@ -386,12 +404,21 @@
     <script src="/js/sweetalert.js"></script>
     <script src="/js/MobileUI.js"></script>
     <script src="/js/user.js"></script>
+    <script src="/js/plugins.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/socketio/socket.io/client-dist/socket.io.js"></script>
     <div class="ui">
+      <img class="vignette" src="/images/high_quality_graphics/vignette.png">
       <div class="banner loading" style="opacity: 1"></div>
+      <div class="final-banner">
+        <div class="final-score"><span id="value">0</span>%</div>
+        <div class="final-text">Was your final parking score</div>
+        <button class="final-continue">Continue</button>
+      </div>
       <div class="pointer"></div>
       <div class="pointer-text">Pointer text.</div>
       <div class="infobox">
         <p class="infobox-header">Objective</p>
+        <p class="infobox-level">Level <span id="value">1</span> / 20</p>
         <p class="infobox-timer">0:00</p>
         <br>
         <p class="infobox-description">Park in the outlined spot before the time runs out. Once you're confident, shift into park to finish. Careful not to crash!</p>
@@ -405,14 +432,55 @@
           <div class="text">Don't worry, the game is paused.</div>
           <div class="button continue" onclick="togglePause()">Resume</div>
           <div class="button" onclick="mainMenu()">Main Menu</div>
+          <div class="button" onclick="toggleGraphicsMode(this)">Graphics Mode <span class="value">Default</span></div>
           <div class="button renderer-quality" onclick="toggleRendererQuality(this)">Renderer Quality <span class="value">1 (low)</span></div>
           <div class="button renderer-quality" onclick="toggleCarCreeping(this)">Car creeping <span class="value">off</span></div>
         </div>
       </div>
     </div>
-    <script>
-    let test = true;
+  <script>
+    let socket = null;
+    let currentPlayer = null;
+    let previousHeading = 0;
+    let otherCarSpeedMS = 0;
+
+    function updatePlayer() {
+      let entry = {
+        car: {
+          position: [car.position.x, car.position.y, car.position.z],
+          rotation: [car.rotation.x, car.rotation.y, car.rotation.z],
+          speedMS: physics.env.speedMS,
+          heading: physics.env.heading,
+          braking: braking
+        }
+      };
+      socket.emit("updatePlayer", entry);
+    }
+
     let mobileUI = new MobileUI();
+    let tips = null;
+
+    function tip() {
+      function next() {
+        let tip = tips[Math.floor(Math.random() * tips.length)];
+        document.querySelector(".banner").innerHTML = `
+        <div class="tip">
+          <div class="header"><i class="fa fa-lightbulb-o"></i> ${tip.header}</div>
+          <div class="text">${tip.tip}</div>
+        </div>
+        `;
+      }
+
+      if (tips) {
+        next();
+      } else {
+        fetch("/tips.json").then(response => response.json()).then(result => {
+          tips = result;
+          next();
+        });
+      }
+    }
+    tip();
 
     Notiflix.Notify.init({
       clickToClose: false,
@@ -445,187 +513,17 @@
       hidePointerText();
     }
 
-    function end(score) {
-      if (currentLevel === 1) {
-        let lowestDistance = Math.min(...testData["1"].data.centerlinerecords);
-        let highestDistance = Math.max(...testData["1"].data.centerlinerecords);
-        let score = Math.round((Math.max(2 - highestDistance, 0) * (500 / 2)) + (Math.max(2 + lowestDistance, 0) * (500 / 2)));
-        testData["1"].data.score = score;
-      } else if (currentLevel === 2) {
-        testData["2"].data.score = score;
-        document.querySelector(".start-banner").style.backgroundImage = "url(/images/badge_precision.gif)";
-        document.querySelector(".start-banner").style.opacity = 1;
-        mobileUI.startBannerUp();
-        setTimeout(() => {
-          loadLevel(currentLevel + 1);
-        }, 3000);
-        setTimeout(() => {
-          document.querySelector(".start-banner").style.opacity = 0;
-          mobileUI.startBannerDown();
-        }, 4000);
-        return;
-      } else if (currentLevel === 3) {
-        stopAnimate = true;
-
-        let veeredDecrement = testData["3"].data.veeredCount * 200;
-        let stopSignsDecrement = testData["3"].data.stopSignsPassed ? 400 : 0;
-        if (veeredDecrement > 200) veeredDecrement *= 2;
-
-        let lowestDistance = Math.min(...testData["3"].data.centerlinerecords);
-        let highestDistance = Math.max(...testData["3"].data.centerlinerecords);
-        let precisionDecrement = 500 - Math.round((Math.max(2 - highestDistance, 0) * (500 / 4)) + (Math.max(2 + lowestDistance, 0) * (500 / 4)));
-
-        testData[3].data.score = 1000 - Math.min(veeredDecrement + stopSignsDecrement + precisionDecrement, 1000);
-
-        document.querySelector(".start-banner").style.backgroundImage = "url(/images/badge_awareness.gif)";
-        document.querySelector(".start-banner").style.opacity = 1;
-        mobileUI.startBannerUp();
-        setTimeout(() => {
-          loadLevel(currentLevel + 1);
-        }, 3000);
-        setTimeout(() => {
-          document.querySelector(".start-banner").style.opacity = 0;
-          mobileUI.startBannerDown();
-        }, 4000);
-        return;
-      } else if (currentLevel === 4) {
-        stopAnimate = true;
-
-        let stopSignsDecrement = testData["4"].data.stopSignsPassed ? 500 : 0;
-        let speedLimitDecrement = testData["4"].data.obeyedSpeedLimit ? 0 : 300;
-        let constructionDecrement = testData["4"].data.obeyedConstruction ? 0 : 500;
-        let tracksDecrement = testData["4"].data.stoppedOnTracks ? 200 : 0;
-
-        testData[4].data.score = 1000 - Math.min(stopSignsDecrement + speedLimitDecrement + constructionDecrement + tracksDecrement, 1000);
-
-        document.querySelector(".start-banner").style.backgroundImage = "url(/images/badge_knowledge.gif)";
-        document.querySelector(".start-banner").style.opacity = 1;
-        mobileUI.startBannerUp();
-        setTimeout(() => {
-          document.querySelector(".start-banner").style.opacity = 0;
-          mobileUI.startBannerDown();
-          finishTest();
-        }, 5000);
-        return;
-      }
-
-      loadLevel(currentLevel + 1);
-    }
-
-    function finishTest() {
-      crashed = true;
-      countingDown = false;
-      lockPointer = false;
-      exitControlLock();
-      if (document.exitPointerLock) document.exitPointerLock();
-      audio.end();
-      stopAnimate = true;
-
-      document.querySelector(".banner").classList.remove("loading");
-      document.querySelector(".banner").style.opacity = 1;
-
-      let lane_precision = testData[1].data.score;
-      let parking_precision = testData[2].data.score;
-      let awareness = testData[3].data.score;
-      let road_knowledge = testData[4].data.score;
-      let score = Math.round((lane_precision + parking_precision + awareness + road_knowledge) / 40);
-
-      let content = document.createElement("div");
-      content.innerHTML = `
-      <div>Driving Test results</div>
-      <br>
-      <div class="line" id="lane_precision">
-        <div class="score score-left"><span class="type">Lane precision</span> <span class="value">${lane_precision}</span></div>
-        <div class="score-bar">
-          <div class="score-bar-value" style="width: ${lane_precision / 10}%"></div>
-        </div>
-        <div class="score score-right">1000</div>
-      </div>
-      <div class="line" id="parking_precision">
-        <div class="score score-left"><span class="type">Parking precision</span> <span class="value">${parking_precision}</span></div>
-        <div class="score-bar">
-          <div class="score-bar-value" style="width: ${parking_precision / 10}%"></div>
-        </div>
-        <div class="score score-right">1000</div>
-      </div>
-      <div class="line" id="awareness">
-        <div class="score score-left"><span class="type">Awareness</span> <span class="value">${awareness}</span></div>
-        <div class="score-bar">
-          <div class="score-bar-value" style="width: ${awareness / 10}%"></div>
-        </div>
-        <div class="score score-right">1000</div>
-      </div>
-      <div class="line" id="road_knowledge">
-        <div class="score score-left"><span class="type">Road Knowledge</span> <span class="value">${road_knowledge}</span></div>
-        <div class="score-bar">
-          <div class="score-bar-value" style="width: ${road_knowledge / 10}%"></div>
-        </div>
-        <div class="score score-right">1000</div>
-      </div>
-      <br>
-      <div style="font-size: 60px">${score}%</div>
-      `;
-      swal({
-        content: content,
-        button: "Finish",
-        closeOnEnterKey: false,
-        closeOnEsc: false,
-        closeOnClickOutside: false
-      }).then(() => {
-        location.replace("/");
-      });
-      document.querySelector(".swal-content").classList.add("final");
-    }
-
     let currentLevel = 1;
 
-    maxButtons = 3;
-
-    let testData = {
-      "1": {
-        time: 120,
-        objective: "Challenge 1: Precision. We will test your driving precision. To begin, we put you at the start of a highway. You will need to constantly steer to stay in your lane. When you see STOP, immediately slow down and stop to finish.",
-        data: {
-          centerlinerecords: [],
-          score: 0
-        }
-      },
-      "2": {
-        time: 60,
-        objective: "Challenge 2: Precision. We will test your driving precision. Park into the parking spot that the arrow is pointing at. Shift into park to finish.",
-        data: {
-          score: 0
-        }
-      },
-      "3": {
-        time: 90,
-        objective: "Challenge 3: Awareness. We will test how aware you are during driving. We'll distract you, and your goal is to pay attention to traffic and driving while you avoid being distracted.",
-        data: {
-          centerlinerecords: [],
-          veered: false,
-          veeredCount: 0,
-          stopSignsPassed: true,
-          score: 0,
-          controlScreen: new THREE.TextureLoader().load("/images/incoming_call.png"),
-          incomingCall: false
-        }
-      },
-      "4": {
-        time: 60,
-        objective: "Challenge 4: Finally, we will test your driving knowledge. Follow the instructions on the road.",
-        data: {
-          score: 0,
-          stopSignsPassed: true,
-          obeyedConstruction: false,
-          obeyedSpeedLimit: true,
-          stoppedOnTracks: false
-        }
-      },
-    };
     let car = null;
+    let otherCar = null;
     let ground = null;
     let carColliders = [];
     let spotDistances = [];
+    let spotDistancesBlue = [];
+    let spotDistancesMystery = [];
+    let spotDistancesHandicap = [];
+    let spotDistancesPrize = [];
     let perspective = 0;
     let steeringLeft = false;
     let steeringRight = false;
@@ -638,7 +536,7 @@
     let frame = 0;
     let controlLock = null;
     let manualSteering = false;
-    let pixelRatio = () => (mobile ? 1.7 : 1);
+    let pixelRatio = () => (hqgraphics ? 1.6 : mobile ? 1.7 : 1);
     let customRendererQuality = false;
     let customPixelRatio = 1;
     let pause = false;
@@ -653,13 +551,14 @@
     let countingDown = true;
     let defaultFov = mobile ? 60 : 55;
     let options = { carHeadingMaxIncrement: 12, carHeadingIncrement: 0 };
-    let levelEnded = false;
-    let useMobileUI = true;
     let hqgraphics = false;
+    let defaultShellMaterial = null;
+    let useMobileUI = true;
     let displayReverseCam = false;
     let mobileSteering = false;
     let cameraHolderPosition = 0;
     let creeping = false;
+    let scores = [];
     controls = {
       "Control_Screen": true,
       "Horn": true,
@@ -694,7 +593,7 @@
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
     const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x2b2c2d, 0.5);
-    const interiorLight = new THREE.PointLight(0xffffff, 0.5);
+    const interiorLight = new THREE.PointLight(0xffffff, 0.8);
     directionalLight.castShadow = true;
     directionalLight.shadow.camera.left = -5;
     directionalLight.shadow.camera.right = 5;
@@ -743,13 +642,13 @@
       setTimeout(() => {
         document.querySelector(".banner").classList.remove("loading");
         document.querySelector(".banner").style.opacity = 1;
-      }, 1500);
+      }, reason === "danger" ? 0 : 1500);
 
       setTimeout(() => {
         swal({
-          title: "You failed.",
-          text: "You exited the driving zone.",
-          buttons: ["Retry", "Return to menu"],
+          title: "Game over",
+          text: "You exited the parking lot.",
+          buttons: ["Retry (2 PTS)", "Return to menu"],
           closeOnEnterKey: false,
           closeOnEsc: false,
           closeOnClickOutside: false
@@ -760,6 +659,8 @@
             location.replace("/");
           }
         });
+        document.querySelector(".swal-button").style.border = "2px solid gold";
+        // document.querySelector(".swal-button").disabled = "disabled";
 
         if (reason === "outofbounds") {
           document.querySelector(".swal-text").textContent = "You exited the parking lot.";
@@ -769,8 +670,107 @@
           document.querySelector(".swal-text").textContent = "You crashed!";
         } else if (reason === "danger") {
           document.querySelector(".swal-text").textContent = "You parked in a danger spot.";
+        } else if (reason === "handicap") {
+          document.querySelector(".swal-text").textContent = "You parked in a handicap spot.";
         }
       }, reason === "danger" ? 0 : 3000);
+    }
+
+    function finishGame(grade, score) {
+      document.querySelector(".final-banner").style.display = "block";
+
+      swal({
+        icon: `/images/grade_${grade}.png`,
+        title: `${score} out of 10`,
+        text: "You made it to the end!",
+        button: "Finish",
+        closeOnEnterKey: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false
+      }).then(() => {
+        stopAnimate = true;
+        audio.end();
+
+        user.set("points", (user.preferences.points || 0) + 1000);
+        user.set("parkingMaster", true);
+
+        document.querySelector(".final-banner").style.opacity = 1;
+
+        let finalScore = Math.round(scores.reduce((a, b) => a + b) / scores.length);
+
+        setTimeout(() => {
+          audio.sounds.percent.play();
+          let score = 0;
+          let timestamp = Date.now();
+          async function increment() {
+            if (Date.now() - timestamp >= 5) {
+              score++;
+              if (score > finalScore) {
+                audio.sounds.percent.pause();
+
+                await plugins.delay(500);
+                document.querySelector(".final-banner .final-text").style.opacity = 1;
+
+                await plugins.delay(1000);
+                document.querySelector(".final-banner .final-continue").style.opacity = 1;
+                document.querySelector(".final-banner .final-continue").onclick = async function() {
+                  document.querySelector(".final-banner .final-text").innerHTML = `<div id="subtext1"></div><div id="subtext2"></div>`;
+
+                  await plugins.type(document.querySelector("#subtext1"), "For making it to the final level, you're now officially considered a Parking Master.");
+                  await plugins.type(document.querySelector("#subtext2"), "Plus, we gave you 1,000 bonus points for your effort!");
+
+                  document.querySelector(".final-banner .final-continue").onclick = async function() {
+                    document.querySelector(".final-banner .final-continue").style = "opacity: 0; transition: none";
+                    document.querySelector(".final-banner .final-text").textContent = "";
+                    document.querySelector(".final-banner .final-continue").textContent = "Finish";
+
+                    await plugins.type(document.querySelector(".final-banner .final-score"), "Parking Master");
+                    await plugins.delay(1000);
+                    await plugins.type(document.querySelector(".final-banner .final-text"), "Thanks for playing.");
+
+                    await plugins.delay(1000);
+                    document.querySelector(".final-banner .final-continue").style = "opacity: 1";
+                    document.querySelector(".final-banner .final-continue").onclick = () => location.replace("/");
+                  };
+                };
+
+                return;
+              }
+
+              document.querySelector(".final-banner .final-score #value").textContent = score;
+            }
+
+            requestAnimationFrame(increment);
+            timestamp = Date.now();
+          }
+          increment();
+        }, 3000);
+      });
+      document.querySelector(".swal-modal").style = "animation: explode 1s !important";
+    }
+
+    function setLightBloom(id) {
+      if (car.getObjectByName("Light_Bloom")) {
+        if (id === 0) {
+          if (currentGear === "reverse") {
+            car.getObjectByName("Light_Bloom").material.color.set(0xffffff);
+          } else {
+            car.getObjectByName("Light_Bloom").material.opacity = 0;
+          }
+        } else if (id === 1) {
+          car.getObjectByName("Light_Bloom").material.opacity = 0.2;
+          car.getObjectByName("Light_Bloom").material.color.set(0xff0000);
+          car.getObjectByName("Light_Bloom").material.depthTest = false;
+          car.getObjectByName("Light_Bloom").material.side = THREE.BackSide;
+        } else if (id === 2) {
+          car.getObjectByName("Light_Bloom").material.opacity = 0.4;
+          car.getObjectByName("Light_Bloom").material.color.set(0xffffff);
+          car.getObjectByName("Light_Bloom").material.depthTest = false;
+          car.getObjectByName("Light_Bloom").material.side = THREE.BackSide;
+        } else if (id === 3) {
+          car.getObjectByName("Light_Bloom").material.opacity = 0;
+        }
+      }
     }
 
     function togglePerspective(newPerspective = null) {
@@ -783,6 +783,7 @@
         car.getObjectByName("CameraHolder_TP").add(camera);
         camera.rotation.set(0, 0, 0);
         PointerControls.isLocked = false;
+        TouchControls.isLocked = false;
         document.querySelector(".pointer").style.display = "none";
         if (engine) car.getObjectByName("Control_Screen").visible = false;
       } else if (newPerspective === 2) {
@@ -790,12 +791,14 @@
         car.getObjectByName("CameraHolder_TP1").add(camera);
         camera.rotation.set(0, 0, 0);
         PointerControls.isLocked = false;
+        TouchControls.isLocked = false;
         document.querySelector(".pointer").style.display = "none";
         if (engine) car.getObjectByName("Control_Screen").visible = false;
       } else if (newPerspective === 0) {
         perspective = 0;
         car.getObjectByName("CameraHolder_FP").add(camera);
         PointerControls.isLocked = true;
+        TouchControls.isLocked = true;
         document.querySelector(".pointer").style.display = "";
         if (engine) car.getObjectByName("Control_Screen").visible = true;
       }
@@ -863,11 +866,19 @@
 
         car.getObjectByName("Reverse_Lights").material.emissive = new THREE.Color(0xffffff);
         car.getObjectByName("Reverse_Lights").material.opacity = 1;
+
+        if (hqgraphics) {
+          setLightBloom(2);
+        }
       } else {
         displayReverseCam = false;
 
         car.getObjectByName("Control_Screen").material.map = controlScreenMap;
         car.getObjectByName("Reverse_Lights").material.opacity = 0;
+
+        if (hqgraphics) {
+          setLightBloom(0);
+        }
       }
     }
 
@@ -875,12 +886,135 @@
       exitControlLock();
       if (document.exitPointerLock) document.exitPointerLock();
       lockPointer = false;
-      countingDown = false;
 
-      let parkingFactor = spotDistances.map(x => spotDistances.map(d => Math.abs(x - d))).flat().reduce((a, b) => a + b) / 16;
-      let score = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 1001), 1000), 0);
+      let inSpot = spotDistances.filter(x => x < 2).length === 4;
+      let inBluespot = spotDistancesBlue.filter(x => x < 2).length === 4;
+      let inMystery = spotDistancesMystery.filter(x => x < 2).length === 4;
+      let inHandicap = spotDistancesHandicap.filter(x => x < 2).length === 4;
+      let inPrize = spotDistancesPrize.filter(x => x < 2).length === 4;
+      let mysterySpot = spotDistancesMystery.filter(x => x < 2);
+      if (inSpot || inBluespot || inMystery || inHandicap || inPrize) {
+        if (inHandicap) return gameOver("handicap");
 
-      end(score);
+        const spotDistancesTemp = inSpot ? spotDistances : inBluespot ? spotDistancesBlue : inMystery ? mysterySpot : spotDistancesPrize;
+        countingDown = false;
+        audio.sounds.drumroll.play();
+
+        swal({
+          text: "Your score was...",
+          button: false,
+          closeOnEnterKey: false,
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        });
+        document.querySelector(".swal-modal").style = "animation: implode 4s ease !important";
+
+        let parkingFactor = spotDistancesTemp.map(x => spotDistancesTemp.map(d => Math.abs(x - d))).flat().reduce((a, b) => a + b) / 16;
+        let score = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 11), 10), 1);
+        let text = score > 9 ? "Perfect job! You're an expert." : score > 6 ? "Great job! Keep it up." : score > 4 ? "Nice work, but you could do a little better." : score > 1 ? "Not terrible... But try to do better." : "Yikes.";
+        let grade = score > 7 ? "A" : score > 4 ? "B" : "C";
+        let points = 1;
+        let percentScore = Math.max(Math.min(Math.ceil((1 - (parkingFactor * 1.5)) * 110), 100), 0);
+        scores.push(percentScore);
+
+        if (inBluespot) {
+          points = 2;
+          text = "You parked in a bluespot. You earned extra points!";
+        }
+
+        if (inMystery) {
+          document.querySelector(".swal-text").textContent = "This mystery spot was...";
+
+          let number = Math.floor(Math.random() * 3);
+          if (number === 0) {
+            return setTimeout(() => {
+              gameOver("danger");
+            }, 4000);
+          } else if (number === 1) {
+            points = 10;
+            text = "You parked in a special spot!";
+          } else if (number === 0) {
+            inSpot = true;
+            inBluespot = true;
+            inMystery = true;
+          }
+        }
+
+        new Image().src = `/images/grade_${grade}.png`;
+
+        function finish() {
+          document.querySelector(".swal-modal").style.border = "";
+          user.set("points", (user.preferences.points || 0) + points);
+          loadLevel(currentLevel + 1);
+          if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+        }
+
+        setTimeout(() => {
+          if (currentLevel == 20) return finishGame(grade, score);
+          if (inPrize) {
+            if (user.loggedIn && availableCars.filter(car => !user.preferences.cars.includes(car)).length > 0) {
+              let ownedCars = availableCars.filter(car => !user.preferences.cars.includes(car));
+              let car = ownedCars[Math.floor(Math.random() * ownedCars.length)];
+
+              swal({
+                icon: `/images/cars/${car}.png`,
+                title: `${score} out of 10`,
+                text: `You won a free car! Claim your new ${car.replace(/_/g, " ")} any time from the shop.`,
+                button: "Next level",
+                closeOnEnterKey: false,
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              }).then(() => {
+                let cars = user.preferences.cars;
+                cars.push(car);
+                user.set("cars", cars);
+
+                finish();
+              });
+            } else {
+              points = 50;
+
+              swal({
+                icon: `/images/grade_${grade}.png`,
+                title: `${score} out of 10`,
+                text: `You earned +${points} points!`,
+                button: "Next level",
+                closeOnEnterKey: false,
+                closeOnEsc: false,
+                closeOnClickOutside: false
+              }).then(finish);
+            }
+          } else {
+            swal({
+              icon: `/images/grade_${grade}.png`,
+              title: `${score} out of 10`,
+              text: `${text} +${points} points`,
+              button: "Next level",
+              closeOnEnterKey: false,
+              closeOnEsc: false,
+              closeOnClickOutside: false
+            }).then(finish);
+          }
+          document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
+          if (inBluespot) document.querySelector(".swal-modal").style.border = "5px solid #0000ff";
+          if ((inMystery && points >= 10) || inPrize) document.querySelector(".swal-modal").style.border = "5px solid gold";
+        }, 4000);
+
+        return true;
+      } else {
+        swal({
+          title: "Oops!",
+          text: "You can't park yet. You must be inside of the outlined parking spot.",
+          button: "Close",
+          closeOnEnterKey: false,
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        }).then(() => {
+          lockPointer = true;
+          exitControlLock();
+        });
+        return false;
+      }
     }
 
     function driveStart() {
@@ -897,12 +1031,24 @@
       keyboardBraking = true;
       braking = true;
       car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
+
+      if (hqgraphics) {
+        setLightBloom(1);
+      }
+
+      updatePlayer();
     }
 
     function brakeStop() {
       braking = false;
       keyboardBraking = false;
       car.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
+
+      if (hqgraphics) {
+        setLightBloom(0);
+      }
+
+      updatePlayer();
     }
 
     function toggleEngine() {
@@ -921,7 +1067,7 @@
     }
 
     function loadEnv(level) {
-      new THREE.GLTFLoader().load(`/models/parking_lots/test${level}.glb`, function(gltf) {
+      new THREE.GLTFLoader().load(`/models/parking_lots/lvl${level}.glb`, function(gltf) {
         ground = gltf.scene;
 
         let scale = 0.33;
@@ -931,12 +1077,6 @@
         resetCarPosition = function() {
           car.position.set(spawner.position.x * scale, spawner.position.y * scale, spawner.position.z * scale);
           car.rotation.copy(ground.getObjectByName("Spawner").rotation);
-          if (currentLevel === 1) {
-            car.rotation.y += (Math.random() / 10) - .05;
-          }
-          if (currentLevel === 3) {
-            car.rotation.y += (Math.random() / 10) - .05;
-          }
         };
         resetCarPosition();
 
@@ -946,7 +1086,9 @@
         ground.getObjectByName("Ground").material.map.magFilter = THREE.NearestFilter;
         ground.getObjectByName("Ground").material.map.needsUpdate = true;
 
-        presets.time = testData[level.toString()].time;
+        if (ground.children[0].userData.time) {
+          presets.time = ground.children[0].userData.time;
+        }
 
         scene.add(ground);
       });
@@ -956,10 +1098,12 @@
       currentLevel = level;
       document.title = "Parking Master Level " + level;
 
+      if (level == 19) document.querySelector(".infobox-description").textContent = "Park in the parking spot that has an arrow pointing at it, before the time runs out. Shift into park to finish.";
+
+      tip();
       document.querySelector(".banner").classList.add("loading");
       document.querySelector(".banner").style.opacity = 1;
-      document.querySelector(".points #value").textContent = localStorage["points"];
-      document.querySelector(".infobox-description").textContent = testData[level.toString()].objective;
+      document.querySelector(".points #value").textContent = user.preferences.points;
 
       stopAnimate = true;
       scene.remove(ground);
@@ -967,6 +1111,7 @@
 
       setTimeout(() => {
         resetEverything();
+        document.querySelector(".infobox-level #value").textContent = level;
       }, 2000);
     }
 
@@ -988,30 +1133,6 @@
       countingDown = true;
       document.querySelector(".banner").style.opacity = 0;
       mobileUI.reset();
-
-      if (currentLevel === 1) {
-        testData["1"].data.centerlinerecords = [];
-      }
-      if (currentLevel === 3) {
-        testData["3"].data = {
-          centerlinerecords: [],
-          veered: false,
-          veeredCount: 0,
-          stopSignsPassed: true,
-          score: 0,
-          controlScreen: testData[3].data.controlScreen,
-          incomingCall: false
-        }
-      }
-      if (currentLevel === 4) {
-        testData["4"].data = {
-          score: 0,
-          stopSignsPassed: true,
-          obeyedConstruction: false,
-          obeyedSpeedLimit: true,
-          stoppedOnTracks: false
-        }
-      }
     }
 
     function updatePauseMenu() {
@@ -1019,11 +1140,19 @@
     }
 
     let pauseStartTime = null;
+    let hqgraphicsBefore = false;
     function togglePause() {
       if (crashed) return;
 
       if (pause) {
         document.querySelector(".ui .pause-menu").style.display = "";
+
+        if (hqgraphics && !hqgraphicsBefore) {
+          swal({
+            text: "Rendering High Quality Graphics may take a few seconds. Please wait...",
+            button: false
+          });
+        }
 
         setTimeout(() => {
           physics.timestamp = performance.now();
@@ -1035,6 +1164,8 @@
           presets.startTimestamp += timePassed;
 
           countingDown = true;
+
+          if (hqgraphics && !hqgraphicsBefore) swal.close(), hqgraphicsBefore = true;
         }, 100);
       } else {
         countingDown = false;
@@ -1045,6 +1176,19 @@
         pause = true;
         pauseStartTime = Date.now();
       }
+    }
+    
+    function toggleGraphicsMode(button) {
+      if (hqgraphics) {
+        button.querySelector(".value").textContent = "Default";
+        toggleHQGraphics();
+        hqgraphicsBefore = false;
+      } else {
+        button.querySelector(".value").textContent = "High Quality";
+        toggleHQGraphics();
+      }
+
+      updatePauseMenu();
     }
 
     function toggleRendererQuality(button, increment = 0.1) {
@@ -1084,6 +1228,47 @@
       });
     }
 
+    function checkIntersections() {
+      raycaster.setFromCamera(centerVector, camera);
+      intersections = raycaster.intersectObjects(raycastTargets).filter(x => x.object.name);
+      for (let i = 0; i < raycastTargets.length; i++) {
+        if (typeof raycastTargets[i].getObjectByName("PointerText") !== "undefined") raycastTargets[i].getObjectByName("PointerText").visible = false;
+      }
+
+      if (intersections[0]) {
+        PointerControls.pointerSpeed = pointerSpeed / 3;
+        TouchControls.speed = touchSpeed / 3;
+        document.querySelector(".pointer").classList.add("active");
+        if (perspective == 0 && typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) {
+          intersections[0].object.getObjectByName("PointerText").visible = true;
+          TouchControls.showUseButton();
+        }
+      } else {
+        document.querySelector(".pointer").classList.remove("active");
+        PointerControls.pointerSpeed = pointerSpeed;
+        TouchControls.speed = touchSpeed;
+      }
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function lerpArray(a, b, t) {
+      return a.map((v, i) => lerp(v, b[i], t));
+    }
+
+    let targetPosition = [0,-1000,0];
+    let targetRotation = [0,0,0];
+    let lerpAlpha = 0.4; // 0 < lerpAlpha < 1. Higher is faster, lower is smoother
+
+    function updateOtherCar() {
+      if (!otherCar) return;
+      otherCar.position.set(...lerpArray([otherCar.position.x, otherCar.position.y, otherCar.position.z], targetPosition, lerpAlpha));
+      otherCar.rotation.set(...lerpArray([0, otherCar.rotation.y, 0], [0, targetRotation[1], 0], lerpAlpha));
+      otherCar.rotation.set(targetRotation[0], otherCar.rotation.y, targetRotation[2]);
+    }
+
     function animate() {
       if (stopAnimate || pause) return;
 
@@ -1091,9 +1276,14 @@
 
       physics.update();
       THREE.Text.update();
+      updateOtherCar();
 
       if (car) {
-        directionalLight.position.set(car.position.x + 10, 10, car.position.z + 5);
+        if (hqgraphics) {
+          directionalLight.position.set(car.position.x + 20, 15, car.position.z - 10);
+        } else {
+          directionalLight.position.set(car.position.x + 10, 10, car.position.z + 5);
+        }
         directionalLight.target.position.set(car.position.x, 0, car.position.z);
         directionalLight.target.updateMatrixWorld();
 
@@ -1139,25 +1329,7 @@
         }
 
         if (frame % 10 === 0) {
-          raycaster.setFromCamera(centerVector, camera);
-          intersections = raycaster.intersectObjects(raycastTargets).filter(x => x.object.name);
-          for (let i = 0; i < raycastTargets.length; i++) {
-            if (typeof raycastTargets[i].getObjectByName("PointerText") !== "undefined") raycastTargets[i].getObjectByName("PointerText").visible = false;
-          }
-
-          if (intersections[0]) {
-            PointerControls.pointerSpeed = pointerSpeed / 3;
-            TouchControls.speed = touchSpeed / 3;
-            document.querySelector(".pointer").classList.add("active");
-            if (perspective == 0 && typeof intersections[0].object.getObjectByName("PointerText") !== "undefined" && !controlLock) {
-              intersections[0].object.getObjectByName("PointerText").visible = true;
-              TouchControls.showUseButton();
-            }
-          } else {
-            document.querySelector(".pointer").classList.remove("active");
-            PointerControls.pointerSpeed = pointerSpeed;
-            TouchControls.speed = touchSpeed;
-          }
+          checkIntersections();
         }
 
         if (collisionWarning) {
@@ -1186,7 +1358,11 @@
           car.getObjectByName("Shifter").rotation.x = 0.3;
         }
 
-        if (ground && carColliders.length > 0) {
+        if (ground && carColliders.length > 0 && frame % 2 === 0) {
+          const spotDistancesMysteryTemp = [];
+          const spotDistancesBlueTemp = [];
+          const spotDistancesHandicapTemp = [];
+          const spotDistancesPrizeTemp = [];
           const spotDistancesTemp = [];
           ground.traverse(wallPoint => {
             const wallPointPosition = wallPoint.getWorldPosition(new THREE.Vector3());
@@ -1214,20 +1390,37 @@
             }
 
             if (wallPoint.name.startsWith("Corner")) {
-              spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              if (wallPoint.name.includes("Bluespot")) {
+                spotDistancesBlueTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else if (wallPoint.name.includes("Mystery")) {
+                spotDistancesMysteryTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else if (wallPoint.name.includes("Handicap")) {
+                spotDistancesHandicapTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else if (wallPoint.name.includes("Prize")) {
+                spotDistancesPrizeTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              } else {
+                spotDistancesTemp.push(wallPointPosition.distanceTo(car.getObjectByName("Collider_" + wallPoint.name.split("_")[1]).getWorldPosition(new THREE.Vector3())));
+              }
             }
           });
 
+          spotDistancesBlue = spotDistancesBlueTemp;
+          spotDistancesMystery = spotDistancesMysteryTemp;
+          spotDistancesHandicap = spotDistancesHandicapTemp;
+          spotDistancesPrize = spotDistancesPrizeTemp;
           spotDistances = spotDistancesTemp;
         }
       }
       if (!mobile || (mobile && !useMobileUI)) physics.env.heading = Math.max(Math.min(physics.env.heading + (options.carHeadingIncrement / physics.env.wheelTurnRatio), 35), -35);
 
+      if (previousHeading != physics.env.heading) updatePlayer();
+      previousHeading = physics.env.heading;
+
       mobileUI.updateWheel(physics.env.heading);
 
       camera.fov = defaultFov + (physics.env.speedMS / 5) + (physics.env.acceleration / 30);
       camera.updateProjectionMatrix();
-      car.getObjectByName("CameraHolder_FP").position.z = cameraHolderPosition.z + Math.min((physics.env.brakePower * physics.env.speedMS) / 10000000, 0.3);
+      car.getObjectByName("CameraHolder_FP").position.z = cameraHolderPosition.z + Math.min(physics.env.brakePower * physics.env.speedMS / 10000000, 0.3);
       car.getObjectByName("CameraHolder_FP").position.x = cameraHolderPosition.x - Math.max(Math.min((physics.env.heading / 40) * (physics.env.speedMS / 70), 0.1), -0.1);
       car.getObjectByName("CameraHolder_TP").position.x = (physics.env.heading / 15) * (physics.env.speedMS / 50);
 
@@ -1241,48 +1434,8 @@
         if (timeLeft < 1000) gameOver("time");
       }
 
-      if (currentLevel === 1) {
-        testData["1"].data.centerlinerecords.push(car.position.z);
-
-        const endPosition = new THREE.Vector3(-123, 0, -1.5);
-        if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
-      } else if (currentLevel === 3) {
-        testData["3"].data.centerlinerecords.push(car.position.z);
-
-        if (car.position.z > 2.8 || car.position.z < 0.9) {
-          if (!testData[3].data.veered) {
-            testData[3].data.veered = true;
-            testData[3].data.veeredCount++;
-          }
-        } else {
-          testData[3].data.veered = false;
-        }
-
-        const stopPosition = new THREE.Vector3(-6, 0, 1);
-        if (car.position.distanceTo(stopPosition) < 8 && physics.env.speedMPH < 0.5) testData[3].data.stopSignsPassed = false;
-
-        const endPosition = new THREE.Vector3(85, 0, 2);
-        if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
-
-        if (car.position.x > -45 && !testData[3].data.incomingCall) {
-          testData[3].data.incomingCall = true;
-          car.getObjectByName("Control_Screen").material.map = testData[3].data.controlScreen;
-          audio.sounds.ringtone.play();
-        }
-      } else if (currentLevel === 4) {
-        if (car.position.x > -53 && car.position.x < -45 && car.position.z > -3.5 && car.position.z < 2) {
-          testData[4].data.obeyedConstruction = true;
-        }
-
-        const stopPosition = new THREE.Vector3(-6, 0, 1);
-        if (car.position.distanceTo(stopPosition) < 8 && physics.env.speedMPH < 0.5) testData[4].data.stopSignsPassed = false;
-
-        const endPosition = new THREE.Vector3(85, 0, 2);
-        if (car.position.distanceTo(endPosition) < 10 && physics.env.speedMPH < 0.5) end();
-
-        if (physics.env.speedMPH > 35) testData[4].data.obeyedSpeedLimit = false;
-
-        if (car.position.x > 20 && car.position.x < 25 && physics.env.speedMPH < 1) testData[4].data.stoppedOnTracks = true;
+      if (physics.env.speedMS > 0.05) {
+        updatePlayer();
       }
 
       if (currentGear === "reverse" && displayReverseCam && frame % 4 === 0) {
@@ -1314,7 +1467,7 @@
       if (pause) return;
       if (car) {
         const shiftFactor = physics.env.currentGear === "drive" ? 1 : -1;
-        const driveFactor= physics.env.currentGear === "drive" ? 1 : 2;
+        const driveFactor = physics.env.currentGear === "drive" ? 1 : 2;
         car.translateZ(physics.env.speedMS * delta * shiftFactor);
         car.rotateY(physics.env.currentHeading * 1.5 * delta * shiftFactor * driveFactor);
 
@@ -1328,28 +1481,35 @@
         car.getObjectByName("Wheel_FR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
         car.getObjectByName("Wheel_RL").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
         car.getObjectByName("Wheel_RR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
+
+        if (otherCar) {
+          otherCar.getObjectByName("Wheel_FL").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
+          otherCar.getObjectByName("Wheel_FR").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
+          otherCar.getObjectByName("Wheel_RL").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
+          otherCar.getObjectByName("Wheel_RR").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
+        }
         if (frame % 5 === 0) document.querySelector(".speed #value").textContent = Math.round(physics.env.speedMPH);
       }
     };
 
     document.addEventListener("keydown", function(event) {
-      if (event.key === "ArrowUp" && !event.repeat) {
+      if ((event.key === "ArrowUp" || event.key === "w") && !event.repeat) {
         if (controlLock === "Shifter") {
           shift("up");
         } else {
           driveStart();
         }
       }
-      if (event.key === "ArrowDown" && !event.repeat) {
+      if ((event.key === "ArrowDown" || event.key === "s") && !event.repeat) {
         if (controlLock === "Shifter") {
           shift("down");
         }
       }
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft" || event.key === "a") {
         manualSteering = true;
         new Tween(options.carHeadingIncrement, options.carHeadingMaxIncrement, 250, "in", (x) => { options.carHeadingIncrement = x }).start();
       }
-      if (event.key === "ArrowRight") {
+      if (event.key === "ArrowRight" || event.key === "d") {
         manualSteering = true;
         new Tween(options.carHeadingIncrement, -options.carHeadingMaxIncrement, 250, "in", (x) => { options.carHeadingIncrement = x }).start();
       }
@@ -1374,14 +1534,14 @@
     });
 
     document.addEventListener("keyup", function(event) {
-      if (event.key === "ArrowUp") {
+      if (event.key === "ArrowUp" || event.key === "w") {
         driveStop();
       }
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft" || event.key === "a") {
         manualSteering = false;
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }
-      if (event.key === "ArrowRight") {
+      if (event.key === "ArrowRight" || event.key === "d") {
         manualSteering = false;
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }
@@ -1390,7 +1550,7 @@
       }
     });
 
-    function mousedown(event) {
+    function mousedown(event = null) {
       if (!mobile && document.pointerLockElement == null && lockPointer && (event ? event.target.className != "settings" : true) && !pause) {
         document.body.requestPointerLock();
         if (perspective === 0) PointerControls.lock();
@@ -1455,6 +1615,10 @@
 
         car.traverse(child => {
           if (child.isMesh) {
+            if (!child.name.includes("Light_Bloom")) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
             if (child.material) child.material.vertexColors = false;
 
             if (child.geometry) {
@@ -1486,7 +1650,7 @@
         car.getObjectByName("Control_Screen").material = new THREE.MeshBasicMaterial({ map: controlScreenMap });
         car.getObjectByName("CameraHolder_Reverse").add(reverseCamera);
 
-        raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Lever"), car.getObjectByName("Lever_Alt"), car.getObjectByName("Shifter"), car.getObjectByName("Control_Screen")];
+        raycastTargets = [car.getObjectByName("Horn"), car.getObjectByName("Ignition"), car.getObjectByName("Shifter")];
         raycastTargets.forEach((control, index) => {
           if (!controls[control.name]) return raycastTargets.splice(index, 1);
         });
@@ -1518,27 +1682,201 @@
         animate();
         audio.start();
 
-        document.querySelector(".infobox-description").textContent = testData["1"].objective;
-
         setTimeout(() => {
-          document.querySelector(".points #value").textContent = localStorage["points"];
+          document.querySelector(".points #value").textContent = user.preferences.points;
 
           presets.startTimestamp = Date.now();
           document.querySelector(".banner").style.opacity = 0;
         }, 2000);
+
+        socket = io("http://192.168.68.52:3000", {
+          auth: {
+            uuid: localStorage["multiplayerUUID"]
+          }
+        });
+
+        socket.on("updateAllPlayers", (players) => {
+          players = JSON.parse(players);
+          delete players[currentPlayer];
+          let otherPlayer = Object.values(players)[0];
+          if (!otherPlayer) return;
+
+          if (otherCar.position.y == -1000) otherCar.position.set(otherPlayer.car.position[0], otherPlayer.car.position[1], otherPlayer.car.position[2]);
+
+          targetPosition = otherPlayer.car.position;
+          targetRotation = otherPlayer.car.rotation;
+
+          otherCar.getObjectByName("Wheel_FL").rotation.y = THREE.MathUtils.degToRad(otherPlayer.car.heading);
+          otherCar.getObjectByName("Wheel_FR").rotation.y = THREE.MathUtils.degToRad(otherPlayer.car.heading);
+
+          if (otherPlayer.car.braking) {
+            otherCar.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
+          } else {
+            otherCar.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
+          }
+
+          otherCarSpeedMS = otherPlayer.car.speedMS;
+        });
+
+        socket.on("playerInit", (uuid) => {
+          currentPlayer = uuid;
+          localStorage.setItem("multiplayerUUID", uuid);
+        });
+      });
+
+      new THREE.GLTFLoader().load(`/models/multiplayer_cars/${selectedCar}.glb`, function(gltf) {
+        otherCar = gltf.scene;
+
+        otherCar.traverse(child => {
+          if (child.isMesh) {
+            if (!child.name.includes("Light_Bloom")) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+            if (child.material) child.material.vertexColors = false;
+
+            if (child.geometry) {
+              child.geometry.computeBoundingSphere();
+              if (child.material.map) {
+                child.material.map.needsUpdate = true;
+              }
+              child.material.needsUpdate = true; 
+            }
+          }
+        });
+
+        otherCar.getObjectByName("Wheel_FL").rotation.order = "YXZ";
+        otherCar.getObjectByName("Wheel_FR").rotation.order = "YXZ";
+        otherCar.getObjectByName("Wheel_RL").rotation.order = "YXZ";
+        otherCar.getObjectByName("Wheel_RR").rotation.order = "YXZ";
+
+        new THREE.TextureLoader().load("/images/sky.png", function(texture) {
+          let pmremGenerator = new THREE.PMREMGenerator(renderer);
+          let envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          otherCar.getObjectByName("Exterior_Shell").material.envMap = envMap;
+        });
+
+        // carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
+
+        otherCar.position.y = -1000;
+        scene.add(otherCar);
       });
     }
 
-    started = false;
-    document.addEventListener("click", function() {
-      if (!started) {
-        started = true;
-        document.querySelector(".start-banner").style.opacity = 0;
-        mobileUI.startBannerDown();
-        start();
+    function toggleHQGraphics() {
+      if (hqgraphics) {
+        hqgraphics = false;
+        onWindowResize();
+
+        directionalLight.color.set(0xffffff);
+        directionalLight.intensity = 0.5;
+        hemisphereLight.color.set(0xffffff);
+        hemisphereLight.groundColor.set(0x2b2c2d);
+        hemisphereLight.intensity = 0.5;
+
+        renderer.toneMapping = 4;
+        renderer.toneMappingExposure = 1;
+        renderer.outputColorSpace = undefined;
+
+        document.querySelector(".ui .vignette").style.display = "none";
+
+        scene.fog = new THREE.Fog(0xaaaaaa, 0,  200);
+        scene.remove(sky);
+
+        let shell = car.getObjectByName("Exterior_Shell");
+        shell.material.envMap = defaultShellMaterial.envMap;
+        shell.material.envMapIntensity = defaultShellMaterial.envMapIntensity;
+        shell.material.metalness = defaultShellMaterial.metalness;
+        shell.material.roughness = defaultShellMaterial.roughness;
+        shell.material.clearcoat = defaultShellMaterial.clearcoat;
+        shell.material.clearcoatRoughness = defaultShellMaterial.clearcoatRoughness;
+
+        setLightBloom(3);
+      } else {
+        hqgraphics = true;
+        customRendererQuality = false;
+        onWindowResize();
+
+        directionalLight.color.set(0xf9d6b3);
+        directionalLight.intensity = 2;
+        hemisphereLight.color.set(0xbfd7ff);
+        hemisphereLight.groundColor.set(0x222020);
+        hemisphereLight.intensity = 0.8;
+
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+        document.querySelector(".ui .vignette").style.display = "block";
+
+        new THREE.TextureLoader().load("/images/high_quality_graphics/sky.png", function(texture) {
+          scene.fog = null;
+
+          sky = new THREE.Mesh(new THREE.SphereGeometry(500, 60, 40), new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide }));
+          scene.add(sky);
+
+          let pmremGenerator = new THREE.PMREMGenerator(renderer);
+          let envMap = pmremGenerator.fromEquirectangular(texture).texture;
+          let shell = car.getObjectByName("Exterior_Shell");
+          defaultShellMaterial = shell.material.clone();
+          shell.material.envMap = envMap;
+          shell.material.envMapIntensity = 1.2;
+          shell.material.metalness = 0.5;
+          shell.material.roughness = 0.1;
+          shell.material.clearcoat = 1;
+          shell.material.clearcoatRoughness = 0.03;
+        });
       }
-    });
-    </script>
+    }
+  </script>
     <script src="/js/CarSelector.js"></script>
   </body>
 </html>
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>Basic Chat</title>
+  <style>
+    body { margin:0; padding:20px; font-family:sans-serif; }
+    ul#messages { list-style-type:none; border:1px solid #ddd; padding:10px; height:300px; overflow-y:auto; margin-bottom:10px;}
+    #messages li { padding:7px 12px; border-bottom:1px solid #eee;}
+    #messages li:last-child { border-bottom: none; }
+    form { display:flex; }
+    input[type="text"] { flex:1; padding:10px; font-size:14px; }
+    button { padding:10px 20px; background:#4CAF50; color:#fff; border:none; cursor:pointer; }
+    button:hover { background: #388e3c; }
+  </style>
+</head>
+<body>
+  <h2>Chat</h2>
+  <ul id="messages"></ul>
+  <form id="form" autocomplete="off">
+    <input id="input" type="text" placeholder="Type your message..." autocomplete="off" />
+    <button>Send</button>
+  </form>
+  <script src="https://cdn.jsdelivr.net/gh/socketio/socket.io/client-dist/socket.io.js"></script>
+  <script>
+    const socket = io("http://localhost:3000");
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (msg) {
+        socket.emit('chat message', msg);
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', (msg) => {
+      const item = document.createElement('li');
+      item.textContent = msg;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+  </script>
+</body>
+</html> -->
