@@ -445,6 +445,8 @@
     let otherCarSpeedMS = 0;
     let players = [];
     let myPosition = null;
+    let multiplayerChannel = new URLSearchParams(location.search).get("c");
+    let parked = false;
 
     function updatePlayer() {
       let entry = {
@@ -457,7 +459,8 @@
           speedMS: physics.env.speedMS,
           heading: physics.env.heading,
           braking: braking,
-          crashed: crashed
+          crashed: crashed,
+          parked: parked
         }
       };
       socket.emit("updatePlayer", entry);
@@ -645,38 +648,16 @@
       setTimeout(() => {
         document.querySelector(".banner").classList.remove("loading");
         document.querySelector(".banner").style.opacity = 1;
-      }, reason === "danger" ? 0 : 1500);
+      }, 1500);
 
       setTimeout(() => {
-        swal({
-          title: "Game over",
-          text: "You exited the parking lot.",
-          buttons: ["Retry (2 PTS)", "Return to menu"],
-          closeOnEnterKey: false,
-          closeOnEsc: false,
-          closeOnClickOutside: false
-        }).then(result => {
-          if (!result) {
-            resetEverything();
-          } else {
-            location.replace("/");
-          }
-        });
-        document.querySelector(".swal-button").style.border = "2px solid gold";
-        // document.querySelector(".swal-button").disabled = "disabled";
-
-        if (reason === "outofbounds") {
-          document.querySelector(".swal-text").textContent = "You exited the parking lot.";
-        } else if (reason === "time") {
-          document.querySelector(".swal-text").textContent = "You ran out of time.";
-        } else if (reason === "crashed") {
-          document.querySelector(".swal-text").textContent = "You crashed!";
-        } else if (reason === "danger") {
-          document.querySelector(".swal-text").textContent = "You parked in a danger spot.";
-        } else if (reason === "handicap") {
-          document.querySelector(".swal-text").textContent = "You parked in a handicap spot.";
+        if (reason === "outofbounds" || reason === "crashed") {
+          Notiflix.Notify.info("You crashed! Hurry up and park before the other player does.");
+        } else {
+          Notiflix.Notify.info("Nobody won, so the round has been extended. Hurry up and park!");
         }
-      }, reason === "danger" ? 0 : 3000);
+        resetEverything();
+      }, 3000);
 
       updatePlayer();
     }
@@ -888,6 +869,19 @@
     }
 
     function park() {
+      function finish() {
+        swal.close();
+        document.querySelector(".swal-modal").style.border = "";
+
+        loadLevel(currentLevel + 1);
+        parked = false;
+        updatePlayer();
+
+        if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
+      }
+
+      if (parked) return finish();
+
       exitControlLock();
       if (document.exitPointerLock) document.exitPointerLock();
       lockPointer = false;
@@ -916,24 +910,22 @@
 
         new Image().src = `/images/grade_${grade}.png`;
 
-        function finish() {
-          document.querySelector(".swal-modal").style.border = "";
-          user.set("points", (user.preferences.points || 0) + points);
-          loadLevel(currentLevel + 1);
-          if (user.loggedIn && currentLevel == 2) user.set("gamesPlayed", (user.preferences.gamesPlayed - 0) + 1);
-        }
-
         setTimeout(() => {
           swal({
             icon: `/images/grade_${grade}.png`,
             title: `${score} out of 10`,
-            text: `${text} +${points} points`,
-            button: "Next level",
+            text: `${text} Please wait for all players to park.`,
+            button: false,
             closeOnEnterKey: false,
             closeOnEsc: false,
             closeOnClickOutside: false
-          }).then(finish);
+          });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
+
+          setTimeout(() => {
+            parked = true;
+            updatePlayer();
+          }, 2000);
         }, 4000);
 
         return true;
@@ -1065,6 +1057,7 @@
       crashed = false;
       presets.startTimestamp = Date.now();
       countingDown = true;
+      parked = false;
       document.querySelector(".banner").style.opacity = 0;
       mobileUI.reset();
     }
@@ -1405,10 +1398,10 @@
         car.getObjectByName("Wheel_RR").rotation.x += physics.env.wheelAngularVelocity * delta * shiftFactor;
 
         if (otherCar) {
-          otherCar.getObjectByName("Wheel_FL").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
-          otherCar.getObjectByName("Wheel_FR").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
-          otherCar.getObjectByName("Wheel_RL").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
-          otherCar.getObjectByName("Wheel_RR").rotation.x += (otherCarSpeedMS * (4 / 3)) * delta;
+          otherCar.getObjectByName("Wheel_FL").rotation.x += (otherCarSpeedMS * 2) * delta;
+          otherCar.getObjectByName("Wheel_FR").rotation.x += (otherCarSpeedMS * 2) * delta;
+          otherCar.getObjectByName("Wheel_RL").rotation.x += (otherCarSpeedMS * 2) * delta;
+          otherCar.getObjectByName("Wheel_RR").rotation.x += (otherCarSpeedMS * 2) * delta;
         }
         if (frame % 5 === 0) document.querySelector(".speed #value").textContent = Math.round(physics.env.speedMPH);
       }
@@ -1440,7 +1433,7 @@
         if (controlLock) return exitControlLock(), camera.rotation.set(0, 0, 0);
         togglePerspective();
       }
-      if (event.key === "b" && !event.repeat) {
+      if ((event.key === "b" || event.key === " ") && !event.repeat) {
         brakeStart();
       }
       if (event.key === "p" && !event.repeat) {
@@ -1467,7 +1460,7 @@
         manualSteering = false;
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }
-      if (event.key === "b") {
+      if (event.key === "b" || event.key === " ") {
         brakeStop();
       }
     });
@@ -1605,15 +1598,21 @@
           document.querySelector(".banner").style.opacity = 0;
         }, 2000);
 
-        socket = io("http://192.168.68.87:3000", {
+        socket = io("https://obscene-talitha-unmusically.ngrok-free.app", {
           auth: {
+            channel: multiplayerChannel,
             uuid: localStorage["multiplayerUUID"],
             car: selectedCar
+          },
+          extraHeaders: {
+            "ngrok-skip-browser-warning": "69420"
           }
         });
 
-        socket.on("updateAllPlayers", (playersArray) => {
-          players = JSON.parse(playersArray);
+        socket.on("updateAllPlayers", ({ playersArray, channel }) => {
+          if (channel != multiplayerChannel) return;
+
+          players = playersArray;
           delete players[currentPlayer];
 
           let otherPlayer = Object.values(players)[0];
@@ -1631,6 +1630,10 @@
             otherCar.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0xff0000);
           } else {
             otherCar.getObjectByName("Brake_Lights").material.emissive = new THREE.Color(0x000000);
+          }
+
+          if (parked && otherPlayer.car.parked) {
+            park();
           }
 
           otherCarSpeedMS = otherPlayer.car.speedMS;

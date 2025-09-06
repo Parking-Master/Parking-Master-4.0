@@ -1462,7 +1462,7 @@
         if (controlLock) return exitControlLock(), camera.rotation.set(0, 0, 0);
         togglePerspective();
       }
-      if (event.key === "b" && !event.repeat) {
+      if ((event.key === "b" || event.key === " ") && !event.repeat) {
         brakeStart();
       }
       if (event.key === "p" && !event.repeat) {
@@ -1489,7 +1489,7 @@
         manualSteering = false;
         new Tween(options.carHeadingIncrement, 0, 500, "out", (x) => { options.carHeadingIncrement = x }).start();
       }
-      if (event.key === "b") {
+      if (event.key === "b" || event.key === " ") {
         brakeStop();
       }
     });

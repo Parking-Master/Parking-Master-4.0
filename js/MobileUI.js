@@ -367,5 +367,7 @@ function MobileUI() {
       }
       return output;
     };
+    swal.close = oldSwal.close;
+    swal.getState = oldSwal.getState;
   }
 }

@@ -10,7 +10,7 @@ function uuidv4() {
   });
 }
 
-let players = {};
+let channels = {};
 
 app.use(function(req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -30,6 +30,12 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
+  let channel = socket.handshake.auth.channel;
+  if (!channel) return;
+
+  if (typeof channels[channel] == "undefined") channels[channel] = { players: {} };
+  let players = channels[channel].players;
+
   let uuid = null;
 
   if (socket.handshake.auth.uuid) {
@@ -42,7 +48,7 @@ io.on("connection", (socket) => {
   if (socket.handshake.auth.car) {
     selectedCar = socket.handshake.auth.car;
   }
-  console.log(uuid, selectedCar)
+  console.log(uuid, selectedCar, channel)
 
   let entry = {
     disconnected: false,
@@ -54,7 +60,8 @@ io.on("connection", (socket) => {
       speedMS: 0,
       heading: 0,
       braking: false,
-      crashed: false
+      crashed: false,
+      parked: false
     }
   };
 
@@ -63,15 +70,16 @@ io.on("connection", (socket) => {
 
   socket.on("updatePlayer", (newEntry) => {
     players[uuid] = newEntry;
-    io.emit("updateAllPlayers", JSON.stringify(players));
+    io.emit("updateAllPlayers", { playersArray: players, channel });
   });
 
   socket.emit("playerInit", uuid, players[uuid].position);
-  io.emit("updateAllPlayers", JSON.stringify(players));
+  io.emit("updateAllPlayers", { playersArray: players, channel });
 
   socket.on("disconnect", () => {
     players[uuid].disconnected = true;
     setTimeout(() => {
+      if (typeof players[uuid] == "undefined") return;
       if (players[uuid].disconnected) delete players[uuid];
     }, 10000);
   });

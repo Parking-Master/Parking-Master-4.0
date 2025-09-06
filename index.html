@@ -298,10 +298,41 @@
       .account button:hover, .account button.hover {
         background: #bbb;
       }
+      .swal-modal {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.24);
+      }
+      .swal-title {
+        color: #333;
+      }
+      .swal-text {
+        color: #333;
+        text-align: center;
+      }
+      .swal-button {
+        color: #fff;
+        background: #333;
+        border-radius: 6px;
+        width: 100px;
+        font-size: 12px;
+        padding: 8px 1px;
+        box-shadow: none !important;
+      }
+      .swal-button:hover {
+        background: #aaa !important;
+      }
+      .swal-button:active {
+        background: #777 !important;
+      }
+      .swal-footer {
+        text-align: center;
+      }
     </style>
   </head>
   <body>
     <script src="/js/user.js"></script>
+    <script src="/js/sweetalert.js"></script>
     <script src="/js/MenuGamepadControls.js"></script>
     <audio id="menu-audio" src="https://cdn.jsdelivr.net/gh/Parking-Master/Parking-Master@latest/index/menu-audio.mp3" autoplay="" loop=""></audio>
     <div class="wrapper">
@@ -335,6 +366,8 @@
       <div class="banner"></div>
     </div>
     <script>
+      let serverURL = "https://working-bedbug-luckily.ngrok-free.app";
+
       function onWindowResize() {
         let averageScale = window.innerHeight / 731;
         let minWidth = 1536 * averageScale;
@@ -374,10 +407,73 @@
         }, 1000);
       }
       function multiplayer() {
-        document.querySelector(".banner").style.opacity = 1;
-        setTimeout(() => {
-          location.href = "/multiplayer.html";
-        }, 1000);
+        let polling = 0;
+        let searched = false;
+
+        swal({
+          text: "Searching for game. Just wait until we find another player.",
+          button: "Cancel",
+          closeOnEsc: false,
+          closeOnClickOutside: false
+        }).then(cancel => {
+          if (cancel) clearInterval(polling);
+        });
+
+        fetch(`${serverURL}/lobby/create`, {
+          headers: {
+            "ngrok-skip-browser-warning": "69420"
+          }
+        }).then(response => {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          function read() {
+            return reader.read().then(({ done, value }) => {
+              let data = decoder.decode(value, { stream: true });
+
+              if (searched) {
+                connect(data);
+                return;
+              } else {
+                search(data);
+              }
+
+              return read();
+            });
+          }
+          return read();
+        });
+
+        function search(lobbyName) {
+          searched = true;
+
+          polling = setInterval(() => {
+            fetch(`${serverURL}/lobby/search?name=${lobbyName}`, {
+              headers: {
+                "ngrok-skip-browser-warning": "69420"
+              }
+            });
+          }, 5000);
+
+          // document.querySelector(".banner").style.opacity = 1;
+          // setTimeout(() => {
+          //   location.href = "/multiplayer.html";
+          // }, 1000);
+        }
+
+        function connect(channel) {
+          swal({
+            text: "Match found! Connecting players...",
+            button: false,
+            closeOnEsc: false,
+            closeOnClickOutside: false
+          });
+
+          clearInterval(polling);
+          setTimeout(() => {
+            location.href = `/multiplayer.html?c=${channel}`;
+          }, 2000);
+        }
       }
       function shop() {
         location.href = "/shop.html";
