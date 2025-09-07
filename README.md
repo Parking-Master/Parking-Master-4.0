@@ -1,37 +1,28 @@
-## :exclamation: Release date
-Parking Master 4.0 will officially be released on September 7th! Here's what we've done so far:
-- Added all 20 fun levels
-- Added new **High Quality Graphics** toggle in settings
-- Optimized performance so insanely good that you won't believe it
-- Added a new scoring system for each time you park
-- Added the log in, sign up, settings, all users, and your profile pages
-- Added the new **Test mode** that evaluates all of your *real* driving skills based off of:
-  - Precision
-  - Awareness
-  - Knowledge
-- Added the shop with 8 beautiful cars
-- Added the account, profile, and points system
-- Created the backend server and logic for everything
-- Finished our beautiful website, main menu, and UI design
-- Yes, we now have real life physics and high-quality audio for all cars!
-- Added the pause menu, with settings, in-game
-- Added the full Mobile UI for all touch and mobile devices
+# Parking Master 4.0
+A lightweight, realistic parking simulator game that can run on almost any device and browser.
 
-And here's what we still need to do before the game is finished:
-- Add the multiplayer mode
-- Fix a few minor bugs
+## Welcome!
+Parking Master 4.0 is now available to play at [4.parkingmaster.tk](https://4.parkingmaster.tk)
 
+Play the original 20 level format, get graded on a driving test, play 1v1 with the multiplayer mode, and buy new cars in the shop!
 
-## Parking-Master-4.0
-Yes, Parking Master is back! The game will be released on September 7. Here's what to expect:
+## Improvements
+#### Performance, framerate
+While we've added many new features since the last Parking Master game, such as working mirrors, working reverse camera, usable interior controls, and higher-quality cars - we also managed to do this while TRIPLING the framerate. On the same device and browser, Parking Master 3.0 ran at 8 FPS on average, while Parking Master 4.0 was run at 23 FPS. Battery-wise, both games are identical in terms of battery drainage while running the game.
 
-- A Microsoft Flight Simulator inspired car game with real physics and many controls.
-- The game will be fully supported on mobile devices, plus Xbox controllers are supported too.
-- The game modes will include the regular game with 20 levels, the Parking Master driving test, and an online multiplayer mode.
-- We've added the option to switch between our default high-performance 3D world and our new **High Quality Graphics** mode for devices that support it.
-- An account/profile system to keep everything saved on every device, plus a world rank/leaderboard for all the Parking Master players.
-- The driving test will give you an in-depth look at your *real* driving skills and what you should improve.
+#### Controls, user feedback
+Months of time were spent dedicated to constantly improving overall design and feel of the car controls. The game now uses a real math-based physics engine and real car controls, such as steering wheel reset, rotating wheels, aerodynamic physics, and engine and braking physics. Each car in the game also has its own preset physics variables for added realism.
 
-The goal for the game is simple. You must become a Parking Master. To do that, you must pass all 20 levels in the game, which is extremely challenging. If you can, you'll officially be known as a Parking Master. You can show off how good your parking skills are to your friends.
+#### Fun, user experience
+In the last game, the steering wheel didn't even turn, the available car models were inconsistent, there were many bugs and messy code, the camera perspectives were unrealistic, and that game didn't even judge your parking. Along with significantly higher framerate, Parking Master 4.0 is now much more fun because it includes a whole judging system that accurately judges how good or bad your parking job was, plus we've added back the Bluespots, Danger Spots, Special Spots, Mystery Spots, and Handicap Spots that were seen Parking Master and Parking Master 2.0.
 
-On top of that, we'll also have other stuff like the official Parking Master Driving Test, the Multiplayer mode for fun, and a shop so you can choose between your favorite cars.
+The levels get increasingly and unexpectedly harder each time you complete one, with barely any time and more complexity as you get to the final levels. The goal for Parking Master is to complete all 20 levels to officially be considered a Parking Master. If you can, there might be a huge prize at the end. Plus, you have chances to win free cars and additional points along the way!
+
+As for how our new judging system works:
+- There are four perfectly placed points around the parking spot.
+- Your car has 4 points placed around all its corners.
+- When you shift into park, the game calculates your score based on each car corner's distance relative to the parking spot corner's distance.
+- This way, the game can generate a universal score that judges you based on how straight your car is and how centered it is.
+- The game creates a score from 1 to 10 and tells you when you park.
+
+#### Graphics
