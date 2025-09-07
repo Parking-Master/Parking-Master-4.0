@@ -1,4 +1,4 @@
-# Parking Master 4.0
+# <img src="apple-touch-icon.png" width="40"> Parking Master 4.0
 A lightweight, realistic parking simulator game that can run on almost any device and browser.
 
 ## Welcome!
@@ -13,6 +13,8 @@ While we've added many new features since the last Parking Master game, such as 
 #### Controls, user feedback
 Months of time were spent dedicated to constantly improving overall design and feel of the car controls. The game now uses a real math-based physics engine and real car controls, such as steering wheel reset, rotating wheels, aerodynamic physics, and engine and braking physics. Each car in the game also has its own preset physics variables for added realism.
 
+We've also added more realism in your car like creeping (can be turned on/off), backup warnings, a horn, a touch screen tablet, both control levers, and the shifter.
+
 #### Fun, user experience
 In the last game, the steering wheel didn't even turn, the available car models were inconsistent, there were many bugs and messy code, the camera perspectives were unrealistic, and that game didn't even judge your parking. Along with significantly higher framerate, Parking Master 4.0 is now much more fun because it includes a whole judging system that accurately judges how good or bad your parking job was, plus we've added back the Bluespots, Danger Spots, Special Spots, Mystery Spots, and Handicap Spots that were seen Parking Master and Parking Master 2.0.
 
@@ -26,3 +28,8 @@ As for how our new judging system works:
 - The game creates a score from 1 to 10 and tells you when you park.
 
 #### Graphics
+The graphics in this game were inspired by the original Parking Master, with a basic white 60x40 board, basic outlined spots, and a gray sky. Not only do these graphics add simplicity and better performance, but they also resemble the nostalgia of the original game.
+
+Our new **High Quality Graphics** mode, inspired by Forza graphics, gives you more dramatic and warmer lighting, and a realistic sky, to feel even more like real life. This mode was chosen to be seperated, unlike Parking Master 3.0 which just tried to use the best graphics all the time. This gives you a simple choice between better realism if your device supports it, and better performance.
+
+#### UI Design
