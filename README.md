@@ -6,6 +6,9 @@ Parking Master 4.0 is now available to play at [4.parkingmaster.tk](https://4.pa
 
 Play the original 20 level format, get graded on a driving test, play 1v1 with the multiplayer mode, and buy new cars in the shop!
 
+<img width="300" src="https://github.com/user-attachments/assets/8c37cb71-5d8a-4818-b59f-05c9af554b66" />
+<img width="300" src="https://github.com/user-attachments/assets/fd006190-ed0a-4dd6-9a51-062003d1f8dc" />
+
 ## Improvements
 #### Performance, framerate
 While we've added many new features since the last Parking Master game, such as working mirrors, working reverse camera, usable interior controls, and higher-quality cars - we also managed to do this while TRIPLING the framerate. On the same device and browser, Parking Master 3.0 ran at 8 FPS on average, while Parking Master 4.0 was run at 23 FPS. Battery-wise, both games are identical in terms of battery drainage while running the game.
@@ -33,3 +36,12 @@ The graphics in this game were inspired by the original Parking Master, with a b
 Our new **High Quality Graphics** mode, inspired by Forza graphics, gives you more dramatic and warmer lighting, and a realistic sky, to feel even more like real life. This mode was chosen to be seperated, unlike Parking Master 3.0 which just tried to use the best graphics all the time. This gives you a simple choice between better realism if your device supports it, and better performance.
 
 #### UI Design
+Our new UI design is a simple, straightforward menu and in-game design, with minimalism in mind. It is slightly retro with a hint of the original Parking Master style.
+
+**Main menu design for Parking Master 3.0**
+
+<img width="300" src="https://github.com/user-attachments/assets/a73455cd-46e7-4089-a9c4-de8598f17348" />
+
+**Main menu design for Parking Master 4.0**
+
+<img width="300" src="https://github.com/user-attachments/assets/62b2c5ff-f765-43ac-bf22-5036dd7c371c" />
