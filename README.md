@@ -19,7 +19,7 @@ Months of time were spent dedicated to constantly improving overall design and f
 We've also added more realism in your car like creeping (can be turned on/off), backup warnings, a horn, a touch screen tablet, both control levers, and the shifter.
 
 #### Fun, user experience
-In the last game, the steering wheel didn't even turn, the available car models were inconsistent, there were many bugs and messy code, the camera perspectives were unrealistic, and that game didn't even judge your parking. Along with significantly higher framerate, Parking Master 4.0 is now much more fun because it includes a whole judging system that accurately judges how good or bad your parking job was, plus we've added back the Bluespots, Danger Spots, Special Spots, Mystery Spots, and Handicap Spots that were seen Parking Master and Parking Master 2.0.
+In the last game, the steering wheel didn't even turn, the available car models were inconsistent, there were many bugs and messy code, the camera perspectives were unrealistic, and that game didn't even judge your parking. Along with significantly higher framerate, Parking Master 4.0 is now much more fun because it includes a whole judging system that accurately judges how good or bad your parking job was, plus we've added back the Bluespots, Danger Spots, Special Spots, Mystery Spots, and Handicap Spots that were seen in Parking Master and Parking Master 2.0.
 
 The levels get increasingly and unexpectedly harder each time you complete one, with barely any time and more complexity as you get to the final levels. The goal for Parking Master is to complete all 20 levels to officially be considered a Parking Master. If you can, there might be a huge prize at the end. Plus, you have chances to win free cars and additional points along the way!
 
@@ -45,3 +45,60 @@ Our new UI design is a simple, straightforward menu and in-game design, with min
 **Main menu design for Parking Master 4.0**
 
 <img width="300" src="https://github.com/user-attachments/assets/62b2c5ff-f765-43ac-bf22-5036dd7c371c" />
+
+## Help
+#### How to play
+1. Press PLAY from the main menu.
+2. Use your cursor to look around.
+3. Use the WAD keys for driving and steering (alternatively use the Arrow Keys).
+4. Look at the shifter inside your car and click it, or use the Shift key as a shortcut.
+5. Once you're in the parking spot, shift into Park to finish.
+6. You'll be graded on how good your parking job was, then you'll move on to the next level.
+
+#### Controls
+<kbd>W</kbd> or <kbd>&UpArrow;</kbd> gives the car engine thrust, or pushes the shifter forward.
+
+<kbd>S</kbd> or <kbd>&DownArrow;</kbd> pulls the shifter backwards.
+
+<kbd>A</kbd> or <kbd>&LeftArrow;</kbd> steers the car to the left.
+
+<kbd>D</kbd> or <kbd>&RightArrow;</kbd> steers the car to the right.
+
+<kbd>Shift</kbd> locks your focus onto the shifter.
+
+<kbd>B</kbd> or <kbd>Space</kbd> activates the brakes.
+
+<kbd>Tab</kbd> switches your view, or unlocks your focus.
+
+<kbd>P</kbd> pauses or unpauses the game.
+
+#### Gamepad Controls
+<kbd>RT</kbd> gives the car engine thrust.
+
+<kbd>L&LeftArrow;</kbd> steers the car to the left.
+
+<kbd>L&RightArrow;</kbd> steers the car to the right.
+
+<kbd>L&UpArrow;</kbd> pushes the shifter forward.
+
+<kbd>L&DownArrow;</kbd> pulls the shifter backwards.
+
+<kbd>LT</kbd> activates the brakes.
+
+<kbd>Y</kbd> switches your view.
+
+<kbd>B</kbd> unlocks your focus or closes the dialog.
+
+<kbd>A</kbd> clicks like your cursor would do, or closes the dialog.
+
+<kbd>R</kbd> looks around.
+
+<kbd>&equiv;</kbd> pauses or unpauses the game.
+
+## Contributions
+Nobody likes bugs, so please open an [Issue](https://github.com/Parking-Master/Parking-Master-4.0/issues) if you come across any problems!
+
+# License
+Copyright (c) 2025 Parking Master
+
+Licensed under the MIT License
