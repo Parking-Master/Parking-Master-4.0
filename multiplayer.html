@@ -8,7 +8,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Parking Master Round 1</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100&display=swap");
+      @font-face {
+        font-family: "DigitalMono";
+        src: url(./fonts/DigitalMono.ttf);
+      }
       @keyframes implode {
         0% {
           transform: scale(1);
@@ -257,7 +260,7 @@
         background-repeat: no-repeat;
         background-color: #fff !important;
       }
-      .final-banner {
+      .start-banner {
         position: absolute;
         width: 100%;
         height: 100%;
@@ -266,16 +269,17 @@
         top: 0;
         bottom: 0;
         margin: 0;
-        background-color: #000;
-        opacity: 0;
-        z-index: 10100;
-        color: #fff;
-        font-size: 60px;
-        font-family: "Montserrat", Arial;
-        align-content: center;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        opacity: 1;
+        pointer-events: none;
+        z-index: 10099;
+        transition: opacity .1s;
         text-align: center;
-        transition: opacity 3s ease-in-out;
-        display: none;
+        align-content: center;
+        color: #fff;
+        font-family: "DigitalMono", Arial;
+        font-size: 60px;
       }
       .tip {
         position: absolute;
@@ -409,10 +413,8 @@
     <div class="ui">
       <img class="vignette" src="/images/high_quality_graphics/vignette.png">
       <div class="banner loading" style="opacity: 1"></div>
-      <div class="final-banner">
-        <div class="final-score"><span id="value">0</span>%</div>
-        <div class="final-text">Was your final parking score</div>
-        <button class="final-continue">Continue</button>
+      <div class="start-banner">
+        <div class="countdown">10</div>
       </div>
       <div class="pointer"></div>
       <div class="pointer-text">Pointer text.</div>
@@ -447,11 +449,22 @@
     let myPosition = null;
     let multiplayerChannel = new URLSearchParams(location.search).get("c");
     let parked = false;
+    let started = false;
+    let started1 = false;
+    let readyToStart = false;
+    let readyToStart1 = false;
+    let roundEnded = false;
+    let myScore = 0;
+    let otherPlayerScore = 0;
 
     function updatePlayer() {
       let entry = {
+        username: user.username || "Guest",
         disconnected: false,
         position: myPosition,
+        readyToStart: readyToStart,
+        readyToStart1: readyToStart1,
+        score: myScore,
         car: {
           type: selectedCar,
           position: [car.position.x, car.position.y, car.position.z],
@@ -650,14 +663,31 @@
         document.querySelector(".banner").style.opacity = 1;
       }, 1500);
 
-      setTimeout(() => {
-        if (reason === "outofbounds" || reason === "crashed") {
-          Notiflix.Notify.info("You crashed! Hurry up and park before the other player does.");
-        } else {
-          Notiflix.Notify.info("Nobody won, so the round has been extended. Hurry up and park!");
-        }
-        resetEverything();
-      }, 3000);
+      if (roundEnded) {
+        setTimeout(() => {
+          swal({
+            text: `You lost this round. Starting next round...`,
+            button: false,
+            closeOnEnterKey: false,
+            closeOnEsc: false,
+            closeOnClickOutside: false
+          });
+
+          setTimeout(() => {
+            parked = true;
+            updatePlayer();
+          }, 2000);
+        }, 2500);
+      } else {
+        setTimeout(() => {
+          if (reason === "outofbounds" || reason === "crashed") {
+            Notiflix.Notify.info("You crashed! Hurry up and park before the other player does.");
+          } else {
+            Notiflix.Notify.info("Nobody won, so the round has been extended. Hurry up and park!");
+          }
+          resetEverything();
+        }, 3000);
+      }
 
       updatePlayer();
     }
@@ -922,6 +952,8 @@
           });
           document.querySelector(".swal-modal").style = "animation: explode 0.5s !important";
 
+          myScore = score;
+
           setTimeout(() => {
             parked = true;
             updatePlayer();
@@ -1032,6 +1064,7 @@
       document.querySelector(".points #value").textContent = user.preferences.points;
 
       stopAnimate = true;
+      roundEnded = false;
       scene.remove(ground);
       loadEnv(level);
 
@@ -1596,6 +1629,8 @@
           document.querySelector(".points #value").textContent = user.preferences.points;
 
           document.querySelector(".banner").style.opacity = 0;
+
+          startScreen();
         }, 2000);
 
         socket = io("https://obscene-talitha-unmusically.ngrok-free.app", {
@@ -1616,7 +1651,20 @@
           delete players[currentPlayer];
 
           let otherPlayer = Object.values(players)[0];
-          if (!otherPlayer || !otherCar) return;
+          if (!otherPlayer) return;
+
+          if (readyToStart && otherPlayer.readyToStart && !started) {
+            started = true;
+            loadEnv(currentLevel);
+            loadOtherVehicle(otherPlayer.car.type);
+          }
+
+          if (!otherCar) return;
+
+          if (readyToStart1 && otherPlayer.readyToStart1 && !started1) {
+            started1 = true;
+            beginCountdown();
+          }
 
           if (otherCar.position.y == -1000) otherCar.position.set(otherPlayer.car.position[0], otherPlayer.car.position[1], otherPlayer.car.position[2]);
 
@@ -1634,9 +1682,29 @@
 
           if (parked && otherPlayer.car.parked) {
             park();
+
+            if (roundEnded) {
+              if (myScore > otherPlayerScore) {
+                swal({
+                  text: `You won this round! Starting next round...`,
+                  button: false,
+                  closeOnEnterKey: false,
+                  closeOnEsc: false,
+                  closeOnClickOutside: false
+                });
+              } else {
+                gameOver("time");
+              }
+            }
+          } else if (!parked && otherPlayer.car.parked && !roundEnded && !stopAnimate) {
+            Notiflix.Notify.info("10 seconds left! The other player just parked, but you still have a chance to win.");
+            presets.startTimestamp = Date.now();
+            presets.time = 10;
+            roundEnded = true;
           }
 
           otherCarSpeedMS = otherPlayer.car.speedMS;
+          otherPlayerScore = otherPlayer.score;
         });
 
         socket.on("playerInit", (uuid, position) => {
@@ -1644,6 +1712,9 @@
           currentPlayer = uuid;
           localStorage.setItem("multiplayerUUID", uuid);
         });
+
+        readyToStart = true;
+        updatePlayer();
       });
     }
 
@@ -1746,37 +1817,67 @@
           otherCar.getObjectByName("Exterior_Shell").material.envMap = envMap;
         });
 
-        // carColliders = [car.getObjectByName("Collider_FL"), car.getObjectByName("Collider_FM"), car.getObjectByName("Collider_FR"), car.getObjectByName("Collider_RL"), car.getObjectByName("Collider_RM"), car.getObjectByName("Collider_RR")];
-
         otherCar.position.y = -1000;
         scene.add(otherCar);
 
-        beginCountdown();
+        renderer.render(scene, camera);
+
+        readyToStart1 = true;
+        updatePlayer();
+      });
+    }
+
+    function startScreen() {
+      swal({
+        text: "Please wait. We're loading all of the players.",
+        button: false,
+        closeOnEnterKey: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false
       });
     }
 
     function beginCountdown() {
       updatePlayer();
       audio.start();
+
+      let startTimestamp = Date.now();
       animate();
       presets.startTimestamp = Date.now();
+      swal.close();
+
+      stopAnimate = true;
+
+      let countdown = setInterval(() => {
+        let secondsLeft = 10 - ((Date.now() - startTimestamp) / 1000);
+        if (secondsLeft < 0) return clearInterval(countdown), document.querySelector(".countdown").textContent = "GO!", finish();
+        document.querySelector(".countdown").textContent = Math.ceil(secondsLeft);
+      });
+
+      function finish() {
+        stopAnimate = false;
+        animate();
+        setTimeout(() => {
+          document.querySelector(".start-banner").remove();
+        }, 1500);
+      }
     }
 
-    let playerConnected = false;
-    let polling = setInterval(() => {
-      if (socket && Object.values(players).length > 0 && myPosition) {
-        if (!playerConnected) {
-          playerConnected = true;
-          clearInterval(polling);
+    // let playerConnected = false;
+    // let polling = setInterval(() => {
+    //   if (socket && Object.values(players).length > 0 && myPosition) {
+    //     if (!playerConnected) {
+    //       playerConnected = true;
+    //       clearInterval(polling);
 
-          let otherPlayer = Object.values(players)[0];
-          if (!otherPlayer) return;
+    //       let otherPlayer = Object.values(players)[0];
+    //       if (!otherPlayer) return;
 
-          loadEnv(currentLevel);
-          loadOtherVehicle(otherPlayer.car.type);
-        }
-      }
-    }, 1000);
+    //       loadEnv(currentLevel);
+    //       loadOtherVehicle(otherPlayer.car.type);
+    //     }
+    //   }
+    // }, 1000);
   </script>
     <script src="/js/CarSelector.js"></script>
   </body>
