@@ -328,6 +328,12 @@
       .swal-footer {
         text-align: center;
       }
+      .overflow-menu-item.nohover {
+        pointer-events: none !important;
+      }
+      .overflow-menu-item.nohover span {
+        opacity: 0;
+      }
     </style>
   </head>
   <body>
@@ -524,6 +530,25 @@
         document.querySelector(".account").innerHTML = `
         <span class="points-icon"></span><span class="points">${comma(user.preferences.points)}</span>
         `;
+      }
+
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in document.documentElement)) {
+        document.querySelector(".overflow-menu").addEventListener("click", function(event) {
+          event.preventDefault();
+
+          let content = document.createElement("div");
+          content.innerHTML = `
+          <a href="/login.html" style="margin-right: 10px">Log in</a>
+          <a href="/signup.html" style="margin-right: 10px">Sign up</a>
+          <a href="/profile.html">My account</a>
+          `;
+          swal({
+            text: "Settings",
+            content: content,
+            button: false
+          });
+        });
+        document.querySelectorAll(".overflow-menu-item").forEach(button => (button.classList.add("nohover")));
       }
     </script>
   </body>
